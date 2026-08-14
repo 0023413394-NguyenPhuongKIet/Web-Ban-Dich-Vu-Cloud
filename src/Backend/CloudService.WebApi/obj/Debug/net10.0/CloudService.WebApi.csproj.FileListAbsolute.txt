@@ -1,8 +1,0 @@
-D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.WebApi\obj\Debug\net10.0\CloudService.WebApi.csproj.AssemblyReference.cache
-D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.WebApi\obj\Debug\net10.0\rpswa.dswa.cache.json
-D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.WebApi\obj\Debug\net10.0\CloudService.WebApi.GeneratedMSBuildEditorConfig.editorconfig
-D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.WebApi\obj\Debug\net10.0\CloudService.WebApi.AssemblyInfoInputs.cache
-D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.WebApi\obj\Debug\net10.0\CloudService.WebApi.AssemblyInfo.cs
-D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.WebApi\obj\Debug\net10.0\CloudService.WebApi.csproj.CoreCompileInputs.cache
-D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.WebApi\obj\Debug\net10.0\CloudService.WebApi.MvcApplicationPartsAssemblyInfo.cs
-D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.WebApi\obj\Debug\net10.0\CloudService.WebApi.MvcApplicationPartsAssemblyInfo.cache

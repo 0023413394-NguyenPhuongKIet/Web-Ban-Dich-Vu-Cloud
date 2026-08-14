@@ -1,0 +1,22 @@
+## .NET Build outputs & IDE artifacts
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+*.userprefs
+
+## Node.js & Next.js artifacts
+node_modules/
+.next/
+out/
+dist/
+
+## Environment & Logs
+*.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
