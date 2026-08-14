@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Backend/">
+    <Project Path="src/Backend/CloudService.Application/CloudService.Application.csproj" />
+    <Project Path="src/Backend/CloudService.Domain/CloudService.Domain.csproj" />
+    <Project Path="src/Backend/CloudService.Infrastructure/CloudService.Infrastructure.csproj" />
+    <Project Path="src/Backend/CloudService.WebApi/CloudService.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CloudService.UnitTests/CloudService.UnitTests.csproj" />
+  </Folder>
+</Solution>

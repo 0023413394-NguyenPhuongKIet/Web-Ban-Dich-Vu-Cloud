@@ -1,0 +1,17 @@
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\bin\Debug\net10.0\CloudService.Infrastructure.deps.json
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\bin\Debug\net10.0\CloudService.Infrastructure.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\bin\Debug\net10.0\CloudService.Infrastructure.pdb
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\bin\Debug\net10.0\CloudService.Application.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\bin\Debug\net10.0\CloudService.Domain.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\bin\Debug\net10.0\CloudService.Application.pdb
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\bin\Debug\net10.0\CloudService.Domain.pdb
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\CloudService.Infrastructure.csproj.AssemblyReference.cache
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\CloudService.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\CloudService.Infrastructure.AssemblyInfoInputs.cache
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\CloudService.Infrastructure.AssemblyInfo.cs
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\CloudService.Infrastructure.csproj.CoreCompileInputs.cache
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\CloudSer.39C9549E.Up2Date
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\CloudService.Infrastructure.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\refint\CloudService.Infrastructure.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\CloudService.Infrastructure.pdb
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Infrastructure\obj\Debug\net10.0\ref\CloudService.Infrastructure.dll

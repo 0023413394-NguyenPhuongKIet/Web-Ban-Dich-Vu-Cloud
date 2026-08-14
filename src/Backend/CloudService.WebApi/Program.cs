@@ -1,0 +1,41 @@
+using CloudService.Application;
+using CloudService.Infrastructure;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add Layered Services
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
+
+// Add Controllers & Swagger Services
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Cloud Service Management API",
+        Version = "v1",
+        Description = "REST API cho hệ thống Bán Dịch vụ Cloud (VPS, Hosting, Domain...)"
+    });
+});
+
+
+var app = builder.Build();
+
+// Configure HTTP Request Pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Cloud Service API v1");
+    });
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
+

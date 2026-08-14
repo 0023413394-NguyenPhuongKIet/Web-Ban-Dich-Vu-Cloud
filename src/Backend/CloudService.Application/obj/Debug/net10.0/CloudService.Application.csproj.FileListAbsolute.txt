@@ -1,0 +1,15 @@
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\CloudService.Application.csproj.AssemblyReference.cache
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\CloudService.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\CloudService.Application.AssemblyInfoInputs.cache
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\CloudService.Application.AssemblyInfo.cs
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\CloudService.Application.csproj.CoreCompileInputs.cache
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\bin\Debug\net10.0\CloudService.Application.deps.json
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\bin\Debug\net10.0\CloudService.Application.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\bin\Debug\net10.0\CloudService.Application.pdb
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\bin\Debug\net10.0\CloudService.Domain.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\bin\Debug\net10.0\CloudService.Domain.pdb
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\CloudSer.1301D416.Up2Date
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\CloudService.Application.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\refint\CloudService.Application.dll
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\CloudService.Application.pdb
+D:\PhatTrienPhanMemHuongDoiTuong\src\Backend\CloudService.Application\obj\Debug\net10.0\ref\CloudService.Application.dll
