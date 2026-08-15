@@ -10,15 +10,7 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 // Add Controllers & Swagger Services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-    {
-        Title = "Cloud Service Management API",
-        Version = "v1",
-        Description = "REST API cho hệ thống Bán Dịch vụ Cloud (VPS, Hosting, Domain...)"
-    });
-});
+builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
