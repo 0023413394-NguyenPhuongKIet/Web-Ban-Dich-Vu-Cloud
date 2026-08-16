@@ -1,4 +1,5 @@
 using CloudService.Domain.Common;
+using CloudService.Domain.Exceptions;
 
 namespace CloudService.Domain.Entities;
 
@@ -13,4 +14,23 @@ public class ServiceCategory : BaseEntity
 
     // Navigation properties
     public ICollection<ServicePlan> ServicePlans { get; set; } = new List<ServicePlan>();
+
+    /// <summary>
+    /// Soft-delete: chỉ cho phép vô hiệu hóa khi không còn ServicePlan nào đang active.
+    /// </summary>
+    public void Deactivate()
+    {
+        if (ServicePlans.Any(p => p.IsActive && !p.IsDeleted))
+            throw new DomainException("Không thể xóa danh mục còn gói dịch vụ đang hoạt động. Hãy xóa hoặc vô hiệu hóa các gói dịch vụ trước.");
+
+        IsActive = false;
+    }
+
+    /// <summary>
+    /// Kích hoạt lại danh mục.
+    /// </summary>
+    public void Activate()
+    {
+        IsActive = true;
+    }
 }

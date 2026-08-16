@@ -1,4 +1,6 @@
+using CloudService.Application.Interfaces;
 using CloudService.Infrastructure.Data;
+using CloudService.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +16,14 @@ public static class DependencyInjection
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
+        // Register Repositories
+        services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
+        services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
+        services.AddScoped<IPlanPriceRepository, PlanPriceRepository>();
+
+        // Register Unit of Work
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
         return services;
     }
 }
-

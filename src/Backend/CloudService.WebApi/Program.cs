@@ -1,5 +1,6 @@
 using CloudService.Application;
 using CloudService.Infrastructure;
+using CloudService.WebApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,10 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure HTTP Request Pipeline
+
+// Global Exception Handling (ProblemDetails RFC 7807)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -30,4 +35,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
