@@ -78,7 +78,7 @@ npm run dev
 
 ## 📌 Danh sách các Pull Request (PR Roadmap)
 - [x] **PR#1:** Khởi tạo cấu trúc solution Clean Architecture 4 tầng, dự án Next.js Frontend, Swagger và README.
-- [ ] **PR#2:** Cơ sở dữ liệu (Entities, DbContext, Migration SQL Server).
+- [x] **PR#2:** Cơ sở dữ liệu (Entities, DbContext, Migration SQL Server).
 - [ ] **PR#3:** Dịch vụ & Bảng giá (CRUD danh mục, gói dịch vụ, giá theo chu kỳ).
 - [ ] **PR#4:** Đăng nhập & Phân quyền (JWT, Refresh Token, Role Admin/Editor).
 - [ ] **PR#5:** Tin tức / Blog (CRUD bài viết, tìm kiếm, phân trang).
