@@ -1,4 +1,6 @@
+using CloudService.Application.Common.Interfaces;
 using CloudService.Infrastructure.Data;
+using CloudService.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +16,12 @@ public static class DependencyInjection
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
+        // Đăng ký dịch vụ Bảo mật JWT và Sinh mã QR vào Dependency Injection Container
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IQrCodeService, QrCodeService>();
+
         return services;
     }
 }
+
 
