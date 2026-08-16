@@ -1,5 +1,7 @@
 using CloudService.Application.Common.Interfaces;
+using CloudService.Application.Interfaces;
 using CloudService.Infrastructure.Data;
+using CloudService.Infrastructure.Repositories;
 using CloudService.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,12 +18,18 @@ public static class DependencyInjection
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-        // Đăng ký dịch vụ Bảo mật JWT và Sinh mã QR vào Dependency Injection Container
+        // Register Repositories (PR#3)
+        services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
+        services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
+        services.AddScoped<IPlanPriceRepository, PlanPriceRepository>();
+
+        // Register Unit of Work (PR#3)
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Register Authentication & QR Code Services (PR#4)
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IQrCodeService, QrCodeService>();
 
         return services;
     }
 }
-
-

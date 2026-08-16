@@ -2,6 +2,7 @@ using System.Text;
 using CloudService.Application;
 using CloudService.Infrastructure;
 using CloudService.Infrastructure.Data;
+using CloudService.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -78,6 +79,10 @@ var app = builder.Build();
 await DatabaseSeeder.SeedAsync(app.Services);
 
 // Configure HTTP Request Pipeline
+
+// Global Exception Handling (ProblemDetails RFC 7807)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
