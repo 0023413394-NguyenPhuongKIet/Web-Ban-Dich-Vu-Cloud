@@ -1,12 +1,13 @@
 using System.Text;
 using CloudService.Application;
 using CloudService.Infrastructure;
+using CloudService.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Layered Services
+// Add Layered Services (Clean Architecture DI)
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
@@ -43,7 +44,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Cloud Service API", Version = "v1" });
-    
+
     // Cấu hình Nút nhập Token Authorization (Bearer <JWT>) trên Giao diện Swagger UI
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
@@ -70,8 +71,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 var app = builder.Build();
+
+// ── Tự động seed dữ liệu mẫu (Role + Admin/Editor) khi khởi động ──────────
+// Chạy một lần khi app start, idempotent (an toàn nếu chạy lại nhiều lần)
+await DatabaseSeeder.SeedAsync(app.Services);
 
 // Configure HTTP Request Pipeline
 if (app.Environment.IsDevelopment())
@@ -89,5 +93,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
