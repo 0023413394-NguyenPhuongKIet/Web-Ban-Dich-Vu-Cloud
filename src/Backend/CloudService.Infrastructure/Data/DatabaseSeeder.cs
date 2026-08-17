@@ -83,6 +83,8 @@ public static class DatabaseSeeder
                 context.AppUsers.Add(editorUser);
             }
 
+            await context.SaveChangesAsync();
+
             // 4. Seed Promotions mẫu nếu chưa có (PR#7)
             if (!await context.Promotions.AnyAsync())
             {

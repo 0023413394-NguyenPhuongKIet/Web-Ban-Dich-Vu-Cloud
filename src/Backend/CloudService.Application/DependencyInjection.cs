@@ -16,6 +16,12 @@ public static class DependencyInjection
         services.AddScoped<IPromotionService, PromotionService>();
         services.AddScoped<PromotionService>();
 
+        // Register PR#8 Services
+        services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IAuditLogService, AuditLogService>();
+        services.AddScoped<IAffiliateService, AffiliateService>();
+        services.AddScoped<IExportService, ExportService>();
+
         return services;
     }
 }
