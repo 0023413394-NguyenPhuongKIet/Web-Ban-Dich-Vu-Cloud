@@ -81,8 +81,52 @@ public static class DatabaseSeeder
                 context.AppUsers.Add(editorUser);
             }
 
+            // 4. Seed Promotions mẫu nếu chưa có
+            if (!await context.Promotions.AnyAsync())
+            {
+                var now = DateTime.UtcNow;
+                var samplePromotions = new List<Promotion>
+                {
+                    new Promotion
+                    {
+                        Code = "WELCOME2026",
+                        Title = "Khuyến mãi chào mừng năm mới 2026 - Giảm 20% toàn bộ dịch vụ",
+                        DiscountPercent = 20.0,
+                        StartDate = now.AddDays(-10),
+                        EndDate = now.AddDays(90),
+                        IsActive = true,
+                        IsDeleted = false,
+                        CreatedAt = now
+                    },
+                    new Promotion
+                    {
+                        Code = "CLOUD50",
+                        Title = "Siêu sale Cloud Server - Giảm ngay 50%",
+                        DiscountPercent = 50.0,
+                        StartDate = now.AddDays(-5),
+                        EndDate = now.AddDays(30),
+                        IsActive = true,
+                        IsDeleted = false,
+                        CreatedAt = now
+                    },
+                    new Promotion
+                    {
+                        Code = "EXPIRED10",
+                        Title = "Mã khuyến mãi đã hết hạn (Mẫu thử nghiệm)",
+                        DiscountPercent = 10.0,
+                        StartDate = now.AddDays(-60),
+                        EndDate = now.AddDays(-5),
+                        IsActive = true,
+                        IsDeleted = false,
+                        CreatedAt = now.AddDays(-60)
+                    }
+                };
+
+                context.Promotions.AddRange(samplePromotions);
+            }
+
             await context.SaveChangesAsync();
-            logger.LogInformation("[Seeder] Dữ liệu mẫu khởi tạo thành công (Admin/Editor sẵn sàng).");
+            logger.LogInformation("[Seeder] Dữ liệu mẫu khởi tạo thành công (Admin, Editor, Promotions).");
         }
         catch (Exception ex)
         {

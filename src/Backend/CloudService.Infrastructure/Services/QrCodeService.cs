@@ -16,11 +16,21 @@ public class QrCodeService : IQrCodeService
         if (string.IsNullOrWhiteSpace(content))
             return string.Empty;
 
+        var qrCodeBytes = GenerateQrCodeBytes(content);
+        return $"data:image/png;base64,{Convert.ToBase64String(qrCodeBytes)}";
+    }
+
+    /// <summary>
+    /// Chuyển đổi nội dung văn bản thành mảng byte hình ảnh PNG
+    /// </summary>
+    public byte[] GenerateQrCodeBytes(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return Array.Empty<byte>();
+
         using var qrGenerator = new QRCodeGenerator();
         using var qrCodeData = qrGenerator.CreateQrCode(content, QRCodeGenerator.ECCLevel.Q);
         using var qrCode = new PngByteQRCode(qrCodeData);
-        var qrCodeBytes = qrCode.GetGraphic(20);
-
-        return $"data:image/png;base64,{Convert.ToBase64String(qrCodeBytes)}";
+        return qrCode.GetGraphic(20);
     }
 }
