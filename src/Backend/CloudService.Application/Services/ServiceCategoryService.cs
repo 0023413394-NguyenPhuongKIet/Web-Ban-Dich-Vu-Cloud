@@ -1,4 +1,5 @@
 using CloudService.Application.Common.Models;
+using CloudService.Application.Common.Utils;
 using CloudService.Application.DTOs.Services;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
@@ -46,14 +47,19 @@ public class ServiceCategoryService
 
     public async Task<ServiceCategoryDto> CreateAsync(CreateServiceCategoryDto dto, CancellationToken cancellationToken = default)
     {
+        // Tự động sinh slug từ Name nếu để trống
+        var slug = string.IsNullOrWhiteSpace(dto.Slug)
+            ? SlugHelper.GenerateSlug(dto.Name)
+            : SlugHelper.GenerateSlug(dto.Slug);
+
         // Validate slug unique
-        if (await _categoryRepo.SlugExistsAsync(dto.Slug, cancellationToken: cancellationToken))
-            throw new DomainException($"Slug '{dto.Slug}' đã tồn tại.");
+        if (await _categoryRepo.SlugExistsAsync(slug, cancellationToken: cancellationToken))
+            throw new DomainException($"Slug '{slug}' đã tồn tại.");
 
         var category = new ServiceCategory
         {
             Name = dto.Name,
-            Slug = dto.Slug,
+            Slug = slug,
             Description = dto.Description,
             IconClass = dto.IconClass,
             DisplayOrder = dto.DisplayOrder,
@@ -71,12 +77,17 @@ public class ServiceCategoryService
         var category = await _categoryRepo.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException(nameof(ServiceCategory), id);
 
+        // Tự động sinh slug từ Name nếu để trống
+        var slug = string.IsNullOrWhiteSpace(dto.Slug)
+            ? SlugHelper.GenerateSlug(dto.Name)
+            : SlugHelper.GenerateSlug(dto.Slug);
+
         // Validate slug unique (trừ chính nó)
-        if (await _categoryRepo.SlugExistsAsync(dto.Slug, excludeId: id, cancellationToken: cancellationToken))
-            throw new DomainException($"Slug '{dto.Slug}' đã tồn tại.");
+        if (await _categoryRepo.SlugExistsAsync(slug, excludeId: id, cancellationToken: cancellationToken))
+            throw new DomainException($"Slug '{slug}' đã tồn tại.");
 
         category.Name = dto.Name;
-        category.Slug = dto.Slug;
+        category.Slug = slug;
         category.Description = dto.Description;
         category.IconClass = dto.IconClass;
         category.DisplayOrder = dto.DisplayOrder;
