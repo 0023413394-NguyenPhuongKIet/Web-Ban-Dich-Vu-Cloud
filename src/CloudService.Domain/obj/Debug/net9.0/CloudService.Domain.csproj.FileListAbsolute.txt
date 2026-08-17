@@ -1,0 +1,11 @@
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\bin\Debug\net9.0\CloudService.Domain.deps.json
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\bin\Debug\net9.0\CloudService.Domain.dll
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\bin\Debug\net9.0\CloudService.Domain.pdb
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\obj\Debug\net9.0\CloudService.Domain.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\obj\Debug\net9.0\CloudService.Domain.AssemblyInfoInputs.cache
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\obj\Debug\net9.0\CloudService.Domain.AssemblyInfo.cs
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\obj\Debug\net9.0\CloudService.Domain.csproj.CoreCompileInputs.cache
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\obj\Debug\net9.0\CloudService.Domain.dll
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\obj\Debug\net9.0\refint\CloudService.Domain.dll
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\obj\Debug\net9.0\CloudService.Domain.pdb
+c:\Users\THANH TRUC\Downloads\Web-Ban-Dich-Vu-Cloud-main\Web-Ban-Dich-Vu-Cloud-main\src\Backend\CloudService.Domain\obj\Debug\net9.0\ref\CloudService.Domain.dll

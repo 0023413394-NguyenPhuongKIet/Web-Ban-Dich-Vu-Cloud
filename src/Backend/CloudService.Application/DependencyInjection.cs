@@ -1,3 +1,4 @@
+using CloudService.Application.Interfaces;
 using CloudService.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,8 @@ public static class DependencyInjection
         services.AddScoped<ServicePlanService>();
         services.AddScoped<PlanPriceService>();
         services.AddScoped<NewsArticleService>();
+        services.AddScoped<IPromotionService, PromotionService>();
+        services.AddScoped<PromotionService>();
 
         return services;
     }

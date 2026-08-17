@@ -1,0 +1,131 @@
+using System.Security.Claims;
+using CloudService.Application.Common.Interfaces;
+using CloudService.Application.Common.Models;
+using CloudService.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace CloudService.WebApi.Controllers;
+
+/// <summary>
+/// Controller xử lý Xác thực & Phân quyền Bảo mật (PR#4: JWT Authentication + Refresh Token + BCrypt)
+/// Đăng nhập khu vực quản trị, Cấp mới Token, Đổi mật khẩu
+/// </summary>
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
+{
+    private readonly ApplicationDbContext _context;
+    private readonly IAuthService _authService;
+
+    public AuthController(ApplicationDbContext context, IAuthService authService)
+    {
+        _context = context;
+        _authService = authService;
+    }
+
+    /// <summary>
+    /// API Đăng nhập tài khoản quản trị (Admin / Editor)
+    /// Trả về JWT Access Token (hạn 60p) + Refresh Token
+    /// </summary>
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+    {
+        // 1. Tìm người dùng theo Username kèm thông tin Role
+        var user = await _context.AppUsers
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Username == request.Username && !u.IsDeleted);
+
+        if (user == null || !user.IsActive)
+        {
+            return Unauthorized(new { Message = "Tài khoản hoặc mật khẩu không chính xác." });
+        }
+
+        // 2. Kiểm tra mật khẩu bằng BCrypt
+        bool isValidPassword = _authService.VerifyPassword(request.Password, user.PasswordHash);
+        if (!isValidPassword)
+        {
+            return Unauthorized(new { Message = "Tài khoản hoặc mật khẩu không chính xác." });
+        }
+
+        // 3. Sinh mã JWT Token và Refresh Token
+        string token = _authService.GenerateJwtToken(user.Id, user.Username, user.Email, user.Role.Name);
+        string refreshToken = _authService.GenerateRefreshToken();
+
+        // 4. Lưu Refresh Token và thời hạn (7 ngày) vào CSDL
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        await _context.SaveChangesAsync();
+
+        return Ok(new AuthResponseDto(
+            AccessToken: token,
+            RefreshToken: refreshToken,
+            ExpiryTime: DateTime.UtcNow.AddMinutes(60),
+            Username: user.Username,
+            Role: user.Role.Name
+        ));
+    }
+
+    /// <summary>
+    /// API Cấp lại Access Token mới khi hết hạn sử dụng Refresh Token
+    /// </summary>
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
+    {
+        var user = await _context.AppUsers
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.RefreshToken == request.RefreshToken && !u.IsDeleted);
+
+        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow || !user.IsActive)
+        {
+            return BadRequest(new { Message = "Refresh Token không hợp lệ hoặc đã hết hạn." });
+        }
+
+        // Sinh mới JWT Token và Refresh Token mới (Rotate Token)
+        string newAccessToken = _authService.GenerateJwtToken(user.Id, user.Username, user.Email, user.Role.Name);
+        string newRefreshToken = _authService.GenerateRefreshToken();
+
+        user.RefreshToken = newRefreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        await _context.SaveChangesAsync();
+
+        return Ok(new AuthResponseDto(
+            AccessToken: newAccessToken,
+            RefreshToken: newRefreshToken,
+            ExpiryTime: DateTime.UtcNow.AddMinutes(60),
+            Username: user.Username,
+            Role: user.Role.Name
+        ));
+    }
+
+    /// <summary>
+    /// API Đổi mật khẩu (Yêu cầu đăng nhập JWT)
+    /// </summary>
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var user = await _context.AppUsers.FindAsync(userId);
+        if (user == null) return NotFound();
+
+        // Kiểm tra mật khẩu cũ
+        if (!_authService.VerifyPassword(request.OldPassword, user.PasswordHash))
+        {
+            return BadRequest(new { Message = "Mật khẩu cũ không chính xác." });
+        }
+
+        // Hash mật khẩu mới bằng BCrypt và cập nhật
+        user.PasswordHash = _authService.HashPassword(request.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = "Đổi mật khẩu thành công." });
+    }
+}

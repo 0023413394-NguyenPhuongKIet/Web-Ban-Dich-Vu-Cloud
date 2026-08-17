@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace CloudService.Infrastructure.Data;
 
 /// <summary>
-/// DatabaseSeeder: Tự động tạo dữ liệu mẫu (Roles, Admin/Editor, Danh mục dịch vụ, Tin tức bài viết mẫu)
+/// DatabaseSeeder: Tự động tạo dữ liệu mẫu (Roles, Admin/Editor, Khuyến mãi, Tin tức)
 /// khi khởi động ứng dụng lần đầu nếu DB còn trống.
 /// Chạy một lần duy nhất — idempotent (an toàn khi chạy nhiều lần).
 /// </summary>
@@ -83,9 +83,51 @@ public static class DatabaseSeeder
                 context.AppUsers.Add(editorUser);
             }
 
-            await context.SaveChangesAsync();
+            // 4. Seed Promotions mẫu nếu chưa có (PR#7)
+            if (!await context.Promotions.AnyAsync())
+            {
+                var now = DateTime.UtcNow;
+                var samplePromotions = new List<Promotion>
+                {
+                    new Promotion
+                    {
+                        Code = "WELCOME2026",
+                        Title = "Khuyến mãi chào mừng năm mới 2026 - Giảm 20% toàn bộ dịch vụ",
+                        DiscountPercent = 20.0,
+                        StartDate = now.AddDays(-10),
+                        EndDate = now.AddDays(90),
+                        IsActive = true,
+                        IsDeleted = false,
+                        CreatedAt = now
+                    },
+                    new Promotion
+                    {
+                        Code = "CLOUD50",
+                        Title = "Siêu sale Cloud Server - Giảm ngay 50%",
+                        DiscountPercent = 50.0,
+                        StartDate = now.AddDays(-5),
+                        EndDate = now.AddDays(30),
+                        IsActive = true,
+                        IsDeleted = false,
+                        CreatedAt = now
+                    },
+                    new Promotion
+                    {
+                        Code = "EXPIRED10",
+                        Title = "Mã khuyến mãi đã hết hạn (Mẫu thử nghiệm)",
+                        DiscountPercent = 10.0,
+                        StartDate = now.AddDays(-60),
+                        EndDate = now.AddDays(-5),
+                        IsActive = true,
+                        IsDeleted = false,
+                        CreatedAt = now.AddDays(-60)
+                    }
+                };
 
-            // 4. Seed Tin tức / Blog mẫu (PR#5) nếu bảng NewsArticles còn trống
+                context.Promotions.AddRange(samplePromotions);
+            }
+
+            // 5. Seed Tin tức / Blog mẫu (PR#5) nếu bảng NewsArticles còn trống
             if (!await context.NewsArticles.AnyAsync())
             {
                 var articles = new List<NewsArticle>
@@ -160,11 +202,10 @@ public static class DatabaseSeeder
                 articles[3].ViewCount = 2100;
 
                 context.NewsArticles.AddRange(articles);
-                await context.SaveChangesAsync();
-                logger.LogInformation("[Seeder] Đã khởi tạo 4 bài viết tin tức / blog mẫu.");
             }
 
-            logger.LogInformation("[Seeder] Dữ liệu mẫu khởi tạo hoàn tất.");
+            await context.SaveChangesAsync();
+            logger.LogInformation("[Seeder] Dữ liệu mẫu khởi tạo hoàn tất (Admin, Editor, Promotions, NewsArticles).");
         }
         catch (Exception ex)
         {
