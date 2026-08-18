@@ -81,9 +81,9 @@ npm run dev
 - [x] **PR#2:** Cơ sở dữ liệu (Entities, DbContext, Migration SQL Server).
 - [x] **PR#3:** Dịch vụ & Bảng giá (CRUD danh mục, gói dịch vụ, giá theo chu kỳ).
 - [x] **PR#4:** Đăng nhập & Phân quyền (JWT, Refresh Token, Role Admin/Editor).
-- [ ] **PR#5:** Tin tức / Blog (CRUD bài viết, tìm kiếm, phân trang).
-- [ ] **PR#6:** Đặt dịch vụ (Form đăng ký, quy trình xử lý đơn hàng).
-- [ ] **PR#7:** Khuyến mãi & QR Code (Mã QR cho gói dịch vụ, khuyến mãi có thời hạn).
+- [x] **PR#5:** Tin tức / Blog (CRUD bài viết, tìm kiếm, phân trang).
+- [x] **PR#6:** Đặt dịch vụ (Form đăng ký, quy trình xử lý đơn hàng).
+- [x] **PR#7:** Khuyến mãi & QR Code (Mã QR cho gói dịch vụ, khuyến mãi có thời hạn).
 - [x] **PR#8:** Quản trị & Thống kê (Dashboard, xuất Excel, Audit Log, Affiliate).
-- [ ] **PR#9:** Tích hợp Frontend (Giao diện Landing Page & Admin Dashboard).
+- [x] **PR#9:** Tích hợp Frontend (Giao diện Landing Page & Admin Dashboard).
 - [ ] **PR#10:** Docker & CI/CD (Dockerfile, docker-compose, GitHub Actions).
