@@ -77,6 +77,7 @@ public static class DatabaseSeeder
 
             await context.SaveChangesAsync();
 
+            // 4. Seed Promotions mẫu nếu chưa có (PR#7)
             if (!await context.Promotions.AnyAsync())
             {
                 var now = DateTime.UtcNow;

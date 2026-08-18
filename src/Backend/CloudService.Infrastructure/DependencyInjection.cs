@@ -18,12 +18,16 @@ public static class DependencyInjection
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-        // Register Repositories (PR#3, PR#5 & PR#7)
+        // Register Repositories (PR#3, PR#5, PR#7 & PR#8)
         services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
         services.AddScoped<IServicePlanRepository, ServicePlanRepository>();
         services.AddScoped<IPlanPriceRepository, PlanPriceRepository>();
         services.AddScoped<INewsArticleRepository, NewsArticleRepository>();
         services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+        services.AddScoped<IAffiliateRepository, AffiliateRepository>();
+        services.AddScoped<IOrderRequestRepository, OrderRequestRepository>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
 
         // Register Unit of Work (PR#3)
         services.AddScoped<IUnitOfWork, UnitOfWork>();
