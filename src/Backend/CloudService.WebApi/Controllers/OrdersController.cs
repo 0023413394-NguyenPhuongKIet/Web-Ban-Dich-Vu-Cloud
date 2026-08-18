@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CloudService.Application.DTOs.Order;
 using CloudService.Application.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -87,9 +87,9 @@ public class OrdersController : ControllerBase
         return Ok(new { success = true, message = "Order cancelled successfully" });
     }
 
-    private Guid GetUserId()
+    private int GetUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException());
+        return int.Parse(userIdClaim ?? throw new UnauthorizedAccessException());
     }
 }

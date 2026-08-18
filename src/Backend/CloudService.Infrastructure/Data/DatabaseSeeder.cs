@@ -418,6 +418,59 @@ public static class DatabaseSeeder
                 await context.SaveChangesAsync();
             }
 
+            // 6. Seed AuditLogs mẫu nếu chưa có dữ liệu (PR#8)
+            if (!await context.AuditLogs.AnyAsync())
+            {
+                var now = DateTime.UtcNow;
+                var sampleLogs = new List<AuditLog>
+                {
+                    new AuditLog
+                    {
+                        UserId = adminUser?.Id,
+                        Action = "Login",
+                        EntityName = "AppUser",
+                        EntityId = adminUser?.Id.ToString(),
+                        Details = "Quản trị viên đăng nhập hệ thống thành công qua JWT",
+                        IpAddress = "127.0.0.1",
+                        CreatedAt = now.AddHours(-3)
+                    },
+                    new AuditLog
+                    {
+                        UserId = adminUser?.Id,
+                        Action = "Create",
+                        EntityName = "ServicePlan",
+                        EntityId = "1",
+                        Details = "Khởi tạo gói dịch vụ VPS Cloud Server",
+                        IpAddress = "127.0.0.1",
+                        CreatedAt = now.AddHours(-2)
+                    },
+                    new AuditLog
+                    {
+                        UserId = editorUser?.Id,
+                        Action = "Publish",
+                        EntityName = "NewsArticle",
+                        EntityId = "1",
+                        Details = "Xuất bản bài viết Hướng dẫn cài đặt Web Server Nginx",
+                        IpAddress = "127.0.0.1",
+                        CreatedAt = now.AddMinutes(-45)
+                    },
+                    new AuditLog
+                    {
+                        UserId = adminUser?.Id,
+                        Action = "Create",
+                        EntityName = "Promotion",
+                        EntityId = "1",
+                        Details = "Tạo mã khuyến mãi chào mừng năm mới WELCOME2026",
+                        IpAddress = "127.0.0.1",
+                        CreatedAt = now.AddMinutes(-10)
+                    }
+                };
+
+                context.AuditLogs.AddRange(sampleLogs);
+                await context.SaveChangesAsync();
+                logger.LogInformation("[Seeder] Đã khởi tạo 4 bản ghi AuditLog mẫu.");
+            }
+
             logger.LogInformation("[Seeder] Dữ liệu mẫu khởi tạo hoàn tất.");
         }
         catch (Exception ex)
