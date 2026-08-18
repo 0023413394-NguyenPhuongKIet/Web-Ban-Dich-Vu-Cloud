@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,7 +28,7 @@ public class OrderService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<OrderResponse> CreateOrderAsync(CreateOrderRequest request, Guid userId)
+    public async Task<OrderResponse> CreateOrderAsync(CreateOrderRequest request, int userId)
     {
         if (string.IsNullOrWhiteSpace(request.CustomerName))
             throw new DomainException("Tên khách hàng không được để trống.");
@@ -103,7 +103,7 @@ public class OrderService
         return MapToResponse(order, order.ServicePlan?.Name ?? "Unknown");
     }
 
-    public async Task<IEnumerable<OrderResponse>> GetOrdersByUserAsync(Guid userId)
+    public async Task<IEnumerable<OrderResponse>> GetOrdersByUserAsync(int userId)
     {
         var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
         return orders.Select(o => MapToResponse(o, o.ServicePlan?.Name ?? "Unknown"));

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -43,7 +43,7 @@ public class OrderRepository : IOrderRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<OrderRequest>> GetOrdersByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<OrderRequest>> GetOrdersByUserIdAsync(int userId, CancellationToken cancellationToken = default)
     {
         return await _context.Set<OrderRequest>()
             .Include(o => o.ServicePlan)
