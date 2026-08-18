@@ -43,7 +43,7 @@ public class AuthService : IAuthService
     public string GenerateJwtToken(int userId, string username, string email, string role)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? "SUPER_SECRET_KEY_FOR_CLOUD_SERVICE_PROJECT_IN4211_2026";
+        var secretKey = jwtSettings["SecretKey"] ?? "SUPER_SECRET_KEY_FOR_CLOUD_SERVICE_PROJECT_IN4211_2026_SOFWARE_ARCHITECTURE";
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
         // Đóng gói thông tin người dùng vào Claims (Được mã hóa trong Signature của JWT)

@@ -5,11 +5,6 @@ using Microsoft.Extensions.Logging;
 
 namespace CloudService.Infrastructure.Data;
 
-/// <summary>
-/// DatabaseSeeder: Tự động tạo dữ liệu mẫu (Roles, Admin/Editor, Khuyến mãi, Tin tức)
-/// khi khởi động ứng dụng lần đầu nếu DB còn trống.
-/// Chạy một lần duy nhất — idempotent (an toàn khi chạy nhiều lần).
-/// </summary>
 public static class DatabaseSeeder
 {
     public static async Task SeedAsync(IServiceProvider serviceProvider)
@@ -20,10 +15,8 @@ public static class DatabaseSeeder
 
         try
         {
-            // 1. Chạy migration nếu database chưa có bảng
             await context.Database.MigrateAsync();
 
-            // 2. Seed Roles nếu chưa có
             var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
             if (adminRole == null)
             {
@@ -48,7 +41,6 @@ public static class DatabaseSeeder
 
             await context.SaveChangesAsync();
 
-            // 3. Seed AppUsers nếu chưa có tài khoản admin / editor
             var adminUser = await context.AppUsers.FirstOrDefaultAsync(u => u.Username == "admin");
             if (adminUser == null)
             {
@@ -83,7 +75,8 @@ public static class DatabaseSeeder
                 context.AppUsers.Add(editorUser);
             }
 
-            // 4. Seed Promotions mẫu nếu chưa có (PR#7)
+            await context.SaveChangesAsync();
+
             if (!await context.Promotions.AnyAsync())
             {
                 var now = DateTime.UtcNow;
@@ -125,9 +118,9 @@ public static class DatabaseSeeder
                 };
 
                 context.Promotions.AddRange(samplePromotions);
+                await context.SaveChangesAsync();
             }
 
-            // 5. Seed Tin tức / Blog mẫu (PR#5) nếu bảng NewsArticles còn trống
             if (!await context.NewsArticles.AnyAsync())
             {
                 var articles = new List<NewsArticle>
@@ -195,17 +188,290 @@ public static class DatabaseSeeder
                     )
                 };
 
-                // Đặt số lượt xem mẫu
                 articles[0].ViewCount = 1250;
                 articles[1].ViewCount = 3420;
                 articles[2].ViewCount = 890;
                 articles[3].ViewCount = 2100;
 
                 context.NewsArticles.AddRange(articles);
+                await context.SaveChangesAsync();
             }
 
-            await context.SaveChangesAsync();
-            logger.LogInformation("[Seeder] Dữ liệu mẫu khởi tạo hoàn tất (Admin, Editor, Promotions, NewsArticles).");
+            if (!await context.ServiceCategories.AnyAsync())
+            {
+                var categories = new List<ServiceCategory>
+                {
+                    new ServiceCategory
+                    {
+                        Name = "VPS / Cloud Server",
+                        Slug = "vps-cloud-server",
+                        Description = "Máy chủ ảo VPS hiệu năng cao trên nền tảng Cloud",
+                        IconClass = "fa-solid fa-server",
+                        DisplayOrder = 1,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ServiceCategory
+                    {
+                        Name = "Hosting / Web Hosting",
+                        Slug = "hosting-web-hosting",
+                        Description = "Dịch vụ lưu trữ website chuyên nghiệp",
+                        IconClass = "fa-solid fa-globe",
+                        DisplayOrder = 2,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ServiceCategory
+                    {
+                        Name = "Domain / Tên Miền",
+                        Slug = "domain-ten-mien",
+                        Description = "Đăng ký và quản lý tên miền quốc tế, .vn",
+                        IconClass = "fa-solid fa-link",
+                        DisplayOrder = 3,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new ServiceCategory
+                    {
+                        Name = "Email / Email Server",
+                        Slug = "email-email-server",
+                        Description = "Dịch vụ Email Server doanh nghiệp",
+                        IconClass = "fa-solid fa-envelope",
+                        DisplayOrder = 4,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+
+                context.ServiceCategories.AddRange(categories);
+                await context.SaveChangesAsync();
+            }
+
+            if (!await context.ServicePlans.AnyAsync())
+            {
+                var vpsCategory = await context.ServiceCategories.FirstOrDefaultAsync(c => c.Slug == "vps-cloud-server");
+                var hostingCategory = await context.ServiceCategories.FirstOrDefaultAsync(c => c.Slug == "hosting-web-hosting");
+                var domainCategory = await context.ServiceCategories.FirstOrDefaultAsync(c => c.Slug == "domain-ten-mien");
+
+                if (vpsCategory != null)
+                {
+                    var vpsPlans = new List<ServicePlan>
+                    {
+                        new ServicePlan
+                        {
+                            ServiceCategoryId = vpsCategory.Id,
+                            Name = "VPS Starter",
+                            Code = "VPS-STARTER",
+                            Description = "Gói VPS cơ bản cho website cá nhân và ứng dụng nhỏ",
+                            SpecsJson = "{\"cpu\":\"2 vCPU\",\"ram\":\"2 GB\",\"storage\":\"50 GB SSD\",\"bandwidth\":\"1 TB\"}",
+                            QrCodeUrl = "",
+                            IsFeatured = false,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new ServicePlan
+                        {
+                            ServiceCategoryId = vpsCategory.Id,
+                            Name = "VPS Pro",
+                            Code = "VPS-PRO",
+                            Description = "Gói VPS hiệu năng cao cho doanh nghiệp và ứng dụng chuyên nghiệp",
+                            SpecsJson = "{\"cpu\":\"4 vCPU\",\"ram\":\"8 GB\",\"storage\":\"200 GB SSD\",\"bandwidth\":\"5 TB\"}",
+                            QrCodeUrl = "",
+                            IsFeatured = true,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new ServicePlan
+                        {
+                            ServiceCategoryId = vpsCategory.Id,
+                            Name = "VPS Business",
+                            Code = "VPS-BUSINESS",
+                            Description = "Gói VPS cao cấp cho doanh nghiệp lớn và ứng dụng đòi hỏi hiệu năng cao",
+                            SpecsJson = "{\"cpu\":\"8 vCPU\",\"ram\":\"16 GB\",\"storage\":\"500 GB SSD\",\"bandwidth\":\"10 TB\"}",
+                            QrCodeUrl = "",
+                            IsFeatured = true,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    };
+
+                    context.ServicePlans.AddRange(vpsPlans);
+                    await context.SaveChangesAsync();
+                }
+
+                if (hostingCategory != null)
+                {
+                    var hostingPlans = new List<ServicePlan>
+                    {
+                        new ServicePlan
+                        {
+                            ServiceCategoryId = hostingCategory.Id,
+                            Name = "Hosting Basic",
+                            Code = "HOSTING-BASIC",
+                            Description = "Gói hosting cơ bản cho website cá nhân",
+                            SpecsJson = "{\"storage\":\"10 GB\",\"bandwidth\":\"100 GB\",\"email_accounts\":\"5\",\"databases\":\"3\"}",
+                            QrCodeUrl = "",
+                            IsFeatured = false,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new ServicePlan
+                        {
+                            ServiceCategoryId = hostingCategory.Id,
+                            Name = "Hosting Pro",
+                            Code = "HOSTING-PRO",
+                            Description = "Gói hosting cao cấp cho doanh nghiệp nhỏ",
+                            SpecsJson = "{\"storage\":\"50 GB\",\"bandwidth\":\"500 GB\",\"email_accounts\":\"20\",\"databases\":\"10\"}",
+                            QrCodeUrl = "",
+                            IsFeatured = true,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    };
+
+                    context.ServicePlans.AddRange(hostingPlans);
+                    await context.SaveChangesAsync();
+                }
+
+                if (domainCategory != null)
+                {
+                    var domainPlans = new List<ServicePlan>
+                    {
+                        new ServicePlan
+                        {
+                            ServiceCategoryId = domainCategory.Id,
+                            Name = "Domain .com",
+                            Code = "DOMAIN-COM",
+                            Description = "Đăng ký tên miền quốc tế .com",
+                            SpecsJson = "{\"extension\":\".com\",\"type\":\"International\",\"dns_management\":true}",
+                            QrCodeUrl = "",
+                            IsFeatured = true,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new ServicePlan
+                        {
+                            ServiceCategoryId = domainCategory.Id,
+                            Name = "Domain .vn",
+                            Code = "DOMAIN-VN",
+                            Description = "Đăng ký tên miền quốc tế .vn",
+                            SpecsJson = "{\"extension\":\".vn\",\"type\":\"International\",\"dns_management\":true}",
+                            QrCodeUrl = "",
+                            IsFeatured = true,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    };
+
+                    context.ServicePlans.AddRange(domainPlans);
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            if (!await context.PlanPrices.AnyAsync())
+            {
+                var plans = await context.ServicePlans.ToListAsync();
+
+                foreach (var plan in plans)
+                {
+                    var basePrice = plan.Code switch
+                    {
+                        "VPS-STARTER" => 200000,
+                        "VPS-PRO" => 600000,
+                        "VPS-BUSINESS" => 1200000,
+                        "HOSTING-BASIC" => 100000,
+                        "HOSTING-PRO" => 300000,
+                        "DOMAIN-COM" => 120000,
+                        "DOMAIN-VN" => 80000,
+                        _ => 150000
+                    };
+
+                    var prices = new List<PlanPrice>
+                    {
+                        new PlanPrice
+                        {
+                            ServicePlanId = plan.Id,
+                            BillingCycle = "monthly",
+                            OriginalPrice = basePrice,
+                            SellingPrice = basePrice,
+                            IsDefault = true,
+                            IsCurrent = true,
+                            EffectiveDate = DateTime.UtcNow,
+                            CreatedAt = DateTime.UtcNow
+                        },
+                        new PlanPrice
+                        {
+                            ServicePlanId = plan.Id,
+                            BillingCycle = "yearly",
+                            OriginalPrice = basePrice * 10,
+                            SellingPrice = basePrice * 10,
+                            IsDefault = false,
+                            IsCurrent = true,
+                            EffectiveDate = DateTime.UtcNow,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    };
+
+                    context.PlanPrices.AddRange(prices);
+                }
+
+                await context.SaveChangesAsync();
+            }
+
+            // 6. Seed AuditLogs mẫu nếu chưa có dữ liệu (PR#8)
+            if (!await context.AuditLogs.AnyAsync())
+            {
+                var now = DateTime.UtcNow;
+                var sampleLogs = new List<AuditLog>
+                {
+                    new AuditLog
+                    {
+                        UserId = adminUser?.Id,
+                        Action = "Login",
+                        EntityName = "AppUser",
+                        EntityId = adminUser?.Id.ToString(),
+                        Details = "Quản trị viên đăng nhập hệ thống thành công qua JWT",
+                        IpAddress = "127.0.0.1",
+                        CreatedAt = now.AddHours(-3)
+                    },
+                    new AuditLog
+                    {
+                        UserId = adminUser?.Id,
+                        Action = "Create",
+                        EntityName = "ServicePlan",
+                        EntityId = "1",
+                        Details = "Khởi tạo gói dịch vụ VPS Cloud Server",
+                        IpAddress = "127.0.0.1",
+                        CreatedAt = now.AddHours(-2)
+                    },
+                    new AuditLog
+                    {
+                        UserId = editorUser?.Id,
+                        Action = "Publish",
+                        EntityName = "NewsArticle",
+                        EntityId = "1",
+                        Details = "Xuất bản bài viết Hướng dẫn cài đặt Web Server Nginx",
+                        IpAddress = "127.0.0.1",
+                        CreatedAt = now.AddMinutes(-45)
+                    },
+                    new AuditLog
+                    {
+                        UserId = adminUser?.Id,
+                        Action = "Create",
+                        EntityName = "Promotion",
+                        EntityId = "1",
+                        Details = "Tạo mã khuyến mãi chào mừng năm mới WELCOME2026",
+                        IpAddress = "127.0.0.1",
+                        CreatedAt = now.AddMinutes(-10)
+                    }
+                };
+
+                context.AuditLogs.AddRange(sampleLogs);
+                await context.SaveChangesAsync();
+                logger.LogInformation("[Seeder] Đã khởi tạo 4 bản ghi AuditLog mẫu.");
+            }
+
+            logger.LogInformation("[Seeder] Dữ liệu mẫu khởi tạo hoàn tất.");
         }
         catch (Exception ex)
         {
