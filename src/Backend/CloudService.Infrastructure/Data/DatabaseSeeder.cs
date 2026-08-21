@@ -377,14 +377,14 @@ public static class DatabaseSeeder
                 {
                     var basePrice = plan.Code switch
                     {
-                        "VPS-STARTER" => 200000,
-                        "VPS-PRO" => 600000,
-                        "VPS-BUSINESS" => 1200000,
-                        "HOSTING-BASIC" => 100000,
-                        "HOSTING-PRO" => 300000,
-                        "DOMAIN-COM" => 120000,
-                        "DOMAIN-VN" => 80000,
-                        _ => 150000
+                        "VPS-STARTER" => 99000,
+                        "VPS-PRO" => 249000,
+                        "VPS-BUSINESS" => 499000,
+                        "HOSTING-BASIC" => 49000,
+                        "HOSTING-PRO" => 99000,
+                        "DOMAIN-COM" => 280000,
+                        "DOMAIN-VN" => 280000,
+                        _ => 99000
                     };
 
                     var prices = new List<PlanPrice>
@@ -470,6 +470,96 @@ public static class DatabaseSeeder
                 context.AuditLogs.AddRange(sampleLogs);
                 await context.SaveChangesAsync();
                 logger.LogInformation("[Seeder] Đã khởi tạo 4 bản ghi AuditLog mẫu.");
+            }
+
+            // 7. Seed OrderRequests mẫu nếu chưa có dữ liệu
+            if (!await context.OrderRequests.AnyAsync())
+            {
+                var starterPlan = await context.ServicePlans.FirstOrDefaultAsync(p => p.Code == "VPS-STARTER");
+                var proPlan = await context.ServicePlans.FirstOrDefaultAsync(p => p.Code == "VPS-PRO");
+                var businessPlan = await context.ServicePlans.FirstOrDefaultAsync(p => p.Code == "VPS-BUSINESS");
+
+                var sampleOrders = new List<OrderRequest>
+                {
+                    new OrderRequest
+                    {
+                        ServicePlanId = starterPlan?.Id ?? 1,
+                        OrderCode = "ORD-20260818-5496",
+                        UserId = adminUser?.Id ?? 1,
+                        Quantity = 1,
+                        CustomerName = "Nguyen Phuong Kiet",
+                        CustomerEmail = "kiet@cloudservice.vn",
+                        CustomerPhone = "0987654321",
+                        CompanyName = "Kiet Cloud Tech Corp",
+                        BillingCycle = "monthly",
+                        TotalAmount = 200000,
+                        Status = "Pending",
+                        Note = "Cài sẵn Ubuntu 24.04 LTS",
+                        CreatedAt = DateTime.UtcNow.AddDays(-2)
+                    },
+                    new OrderRequest
+                    {
+                        ServicePlanId = proPlan?.Id ?? 2,
+                        OrderCode = "ORD-20260820-001",
+                        UserId = adminUser?.Id ?? 1,
+                        Quantity = 1,
+                        CustomerName = "Nguyễn Văn An",
+                        CustomerEmail = "an.nguyen@company.vn",
+                        CustomerPhone = "0909123456",
+                        CompanyName = "An Tech Co., Ltd",
+                        BillingCycle = "monthly",
+                        TotalAmount = 600000,
+                        Status = "Completed",
+                        Note = "Gói VPS Pro hiệu năng cao",
+                        CreatedAt = DateTime.UtcNow.AddHours(-5)
+                    }
+                };
+
+                context.OrderRequests.AddRange(sampleOrders);
+                await context.SaveChangesAsync();
+                logger.LogInformation("[Seeder] Đã khởi tạo các đơn hàng mẫu trong Database.");
+            }
+
+            // 8. Seed AffiliateApplications mẫu nếu chưa có dữ liệu
+            if (!await context.AffiliateApplications.AnyAsync())
+            {
+                var sampleAffiliates = new List<AffiliateApplication>
+                {
+                    new AffiliateApplication
+                    {
+                        FullName = "Nguyễn Thanh Trung",
+                        Email = "thanhtrung@email.com",
+                        Phone = "0783812178",
+                        WebsiteUrl = "https://vinahost.vn/thue-vps",
+                        PromotionPlan = "thuê dịch vụ giá rẻ và review máy chủ",
+                        Status = "Approved",
+                        CreatedAt = DateTime.UtcNow.AddDays(-1)
+                    },
+                    new AffiliateApplication
+                    {
+                        FullName = "Võ Nguyễn Nguyên Hùng",
+                        Email = "hungvo@gmail.com",
+                        Phone = "0783812178",
+                        WebsiteUrl = "https://www.vps.com.vn",
+                        PromotionPlan = "Quảng bá dịch vụ trên website công nghệ",
+                        Status = "Approved",
+                        CreatedAt = DateTime.UtcNow.AddDays(-2)
+                    },
+                    new AffiliateApplication
+                    {
+                        FullName = "Nguyen Van A",
+                        Email = "vana@gmail.com",
+                        Phone = "0912345678",
+                        WebsiteUrl = "https://vana-blog.vn",
+                        PromotionPlan = "Chia sẻ link trên mạng xã hội",
+                        Status = "Approved",
+                        CreatedAt = DateTime.UtcNow.AddDays(-5)
+                    }
+                };
+
+                context.AffiliateApplications.AddRange(sampleAffiliates);
+                await context.SaveChangesAsync();
+                logger.LogInformation("[Seeder] Đã khởi tạo 3 hồ sơ đối tác Affiliate mẫu.");
             }
 
             logger.LogInformation("[Seeder] Dữ liệu mẫu khởi tạo hoàn tất.");

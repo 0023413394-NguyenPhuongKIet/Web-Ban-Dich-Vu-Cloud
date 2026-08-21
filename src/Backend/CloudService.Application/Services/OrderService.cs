@@ -121,18 +121,9 @@ public class OrderService
         if (order == null)
             throw new NotFoundException(nameof(OrderRequest), id);
 
-        var validStatuses = new[] { "Pending", "Paid", "Active", "Cancelled", "Expired" };
+        var validStatuses = new[] { "Pending", "Processing", "Completed", "Active", "Cancelled", "Expired" };
         if (!validStatuses.Contains(request.Status))
             throw new DomainException($"Trạng thái '{request.Status}' không hợp lệ.");
-
-        if (order.Status == "Cancelled")
-            throw new DomainException("Đơn hàng đã bị hủy, không thể thay đổi trạng thái.");
-
-        if (order.Status == "Paid" && request.Status == "Pending")
-            throw new DomainException("Không thể chuyển đơn hàng đã thanh toán về trạng thái chờ xử lý.");
-
-        if (order.Status == "Active" && request.Status != "Expired")
-            throw new DomainException("Đơn hàng đang hoạt động chỉ có thể chuyển sang trạng thái hết hạn.");
 
         order.Status = request.Status;
         order.UpdatedAt = DateTime.UtcNow;
