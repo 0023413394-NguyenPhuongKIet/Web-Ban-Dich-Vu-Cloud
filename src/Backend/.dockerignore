@@ -1,0 +1,20 @@
+﻿# Build artifacts
+bin/
+obj/
+*.user
+
+# Git
+.git/
+.gitignore
+
+# VS/IDE
+.vs/
+*.suo
+*.sln.docstates
+.idea/
+
+# Test results
+TestResults/
+
+# Logs
+*.log

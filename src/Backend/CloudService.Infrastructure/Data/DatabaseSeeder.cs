@@ -39,6 +39,17 @@ public static class DatabaseSeeder
                 context.Roles.Add(editorRole);
             }
 
+            var customerRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
+            if (customerRole == null)
+            {
+                customerRole = new Role
+                {
+                    Name = "Customer",
+                    Description = "Khách hàng người dùng hệ thống"
+                };
+                context.Roles.Add(customerRole);
+            }
+
             await context.SaveChangesAsync();
 
             var adminUser = await context.AppUsers.FirstOrDefaultAsync(u => u.Username == "admin");
