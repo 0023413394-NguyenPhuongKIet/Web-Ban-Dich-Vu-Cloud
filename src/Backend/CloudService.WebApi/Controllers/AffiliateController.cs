@@ -32,10 +32,11 @@ public class AffiliateController : ControllerBase
     }
 
     /// <summary>
-    /// [Admin] Lấy danh sách các đơn đăng ký Affiliate (lọc & phân trang)
+    /// [Admin, Editor] Lấy danh sách các đơn đăng ký Affiliate (lọc & phân trang)
+    /// Editor chỉ có quyền xem, không duyệt/từ chối
     /// </summary>
     [HttpGet("applications")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     [ProducesResponseType(typeof(PagedResult<AffiliateApplicationDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetApplications([FromQuery] AffiliateQueryDto query, CancellationToken cancellationToken)
     {
@@ -44,10 +45,11 @@ public class AffiliateController : ControllerBase
     }
 
     /// <summary>
-    /// [Admin] Xem chi tiết 1 đơn đăng ký Affiliate theo ID
+    /// [Admin, Editor] Xem chi tiết 1 đơn đăng ký Affiliate theo ID
+    /// Editor chỉ có quyền xem, không duyệt/từ chối
     /// </summary>
     [HttpGet("applications/{id:int}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     [ProducesResponseType(typeof(AffiliateApplicationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
