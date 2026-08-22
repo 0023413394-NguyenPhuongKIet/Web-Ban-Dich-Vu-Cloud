@@ -80,10 +80,11 @@ export default function MyOrdersPage() {
       }
 
       // Hợp nhất đơn hàng từ Backend + Local của chính user này
+      // Loại bỏ các đơn trùng lặp (nếu đã có đơn từ trang liên hệ mang thông tin chi tiết thì ưu tiên giữ đơn đó)
       const combined = [...userLocalOrders, ...fetchedData];
       const uniqueMap = new Map();
       combined.forEach((item) => {
-        const idKey = item.orderCode || item.id;
+        const idKey = item.orderCode || String(item.id);
         if (!uniqueMap.has(idKey)) {
           uniqueMap.set(idKey, {
             ...item,
@@ -92,7 +93,23 @@ export default function MyOrdersPage() {
         }
       });
 
-      const finalOrders = Array.from(uniqueMap.values());
+      let finalOrders = Array.from(uniqueMap.values());
+
+      // Lọc thông minh: nếu có cả đơn có thông tin chu kỳ/trả góp chi tiết (từ liên hệ) và đơn thô từ DB có cùng số tiền & cùng gói thì ẩn đơn thô đi
+      const detailedOrders = finalOrders.filter(o => o.remainingAmount !== undefined || o.isPayingInstallment);
+      finalOrders = finalOrders.filter(o => {
+        if (o.remainingAmount === undefined && !o.isPayingInstallment && !o.isInstallmentOrder) {
+          const duplicateDetailed = detailedOrders.find(d => 
+            (d.totalAmount === o.totalAmount || d.originalTotalAmount === o.totalAmount) &&
+            (d.servicePlanName?.toLowerCase().includes('starter') && o.servicePlanName?.toLowerCase().includes('starter'))
+          );
+          if (duplicateDetailed && duplicateDetailed.orderCode !== o.orderCode) {
+            return false; // Ẩn bản ghi đơn thô bị trùng lặp
+          }
+        }
+        return true;
+      });
+
       setOrders(finalOrders);
 
       // Quét đơn hàng trả góp chu kỳ để hiển thị banner nhắc hẹn
