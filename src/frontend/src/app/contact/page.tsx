@@ -361,9 +361,13 @@ export default function ContactPage() {
           id: Math.floor(Math.random() * 1000) + 100,
         };
 
+        // Luôn dùng orderCode & id từ backend để dedup chính xác khi my-orders load lại
+        const backendId = orderData.id || Date.now();
+        const backendOrderCode = orderData.orderCode || `ORD-${Date.now().toString().slice(-6)}`;
+
         const newCreatedOrder = {
-          id: orderData.id || Date.now(),
-          orderCode: orderData.orderCode || `ORD-${Date.now().toString().slice(-6)}`,
+          id: backendId,
+          orderCode: backendOrderCode,
           username: localStorage.getItem('username') || nameClean,
           customerName: nameClean,
           customerEmail: emailClean,
@@ -383,11 +387,17 @@ export default function ContactPage() {
           note: `[ĐẶT TỪ TRANG LIÊN HỆ] ${paymentTypeLabel} Thời gian: ${totalMonths} tháng. Ghi chú: ${note.trim()}`,
         };
 
-        // Lưu đơn mới vào user_created_orders để My Orders và Admin Orders thấy ngay
+        // Lưu đơn mới vào user_created_orders (dùng đúng orderCode của backend để tránh trùng lặp khi dedup)
         try {
           const existingOrders: any[] = JSON.parse(localStorage.getItem('user_created_orders') || '[]');
-          existingOrders.unshift(newCreatedOrder);
-          localStorage.setItem('user_created_orders', JSON.stringify(existingOrders));
+          // Không thêm nếu đã có đơn cùng orderCode hoặc cùng id
+          const alreadyExists = existingOrders.some(o => 
+            o.orderCode === backendOrderCode || String(o.id) === String(backendId)
+          );
+          if (!alreadyExists) {
+            existingOrders.unshift(newCreatedOrder);
+            localStorage.setItem('user_created_orders', JSON.stringify(existingOrders));
+          }
         } catch {
           // ignore
         }

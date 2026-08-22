@@ -79,9 +79,36 @@ export default function MyOrdersPage() {
         fetchedData = res.data.data;
       }
 
-      // Hợp nhất đơn hàng từ Backend + Local của chính user này
-      // Loại bỏ các đơn trùng lặp (nếu đã có đơn từ trang liên hệ mang thông tin chi tiết thì ưu tiên giữ đơn đó)
-      const combined = [...userLocalOrders, ...fetchedData];
+      // Tập hợp id và orderCode đã có từ backend
+      const backendIds = new Set(fetchedData.map((o: any) => String(o.id)));
+      const backendOrderCodes = new Set(fetchedData.map((o: any) => o.orderCode).filter(Boolean));
+
+      // Loại bỏ đơn local đã có bản sao trên backend (dedup chính xác theo id hoặc orderCode)
+      const uniqueLocalOrders = userLocalOrders.filter(o => {
+        const sameId = backendIds.has(String(o.id));
+        const sameCode = o.orderCode && backendOrderCodes.has(o.orderCode);
+        if (sameId || sameCode) {
+          // Đơn này đã tồn tại trên backend, chỉ giữ version local nếu nó có thông tin chu kỳ phong phú hơn
+          const backendVersion = fetchedData.find((b: any) => String(b.id) === String(o.id) || b.orderCode === o.orderCode);
+          // Nếu backend thiếu thông tin remainingAmount/isPayingInstallment thì merge vào backend entry
+          if (backendVersion && (o.remainingAmount !== undefined || o.isPayingInstallment)) {
+            // Merge thông tin trả góp từ local vào backend entry
+            Object.assign(backendVersion, {
+              remainingAmount: backendVersion.remainingAmount ?? o.remainingAmount,
+              originalTotalAmount: backendVersion.originalTotalAmount ?? o.originalTotalAmount,
+              paidCycles: backendVersion.paidCycles ?? o.paidCycles,
+              totalInstallmentCycles: backendVersion.totalInstallmentCycles ?? o.totalInstallmentCycles,
+              cycleAmount: backendVersion.cycleAmount ?? o.cycleAmount,
+              isPayingInstallment: backendVersion.isPayingInstallment ?? o.isPayingInstallment,
+            });
+          }
+          return false; // Loại bỏ đơn local trùng lặp
+        }
+        return true; // Giữ đơn local chưa có trên backend
+      });
+
+      // Hợp nhất: đơn local không trùng (hiển thị ngay sau submit) + đơn backend
+      const combined = [...uniqueLocalOrders, ...fetchedData];
       const uniqueMap = new Map();
       combined.forEach((item) => {
         const idKey = item.orderCode || String(item.id);
@@ -93,23 +120,7 @@ export default function MyOrdersPage() {
         }
       });
 
-      let finalOrders = Array.from(uniqueMap.values());
-
-      // Lọc thông minh: nếu có cả đơn có thông tin chu kỳ/trả góp chi tiết (từ liên hệ) và đơn thô từ DB có cùng số tiền & cùng gói thì ẩn đơn thô đi
-      const detailedOrders = finalOrders.filter(o => o.remainingAmount !== undefined || o.isPayingInstallment);
-      finalOrders = finalOrders.filter(o => {
-        if (o.remainingAmount === undefined && !o.isPayingInstallment && !o.isInstallmentOrder) {
-          const duplicateDetailed = detailedOrders.find(d => 
-            (d.totalAmount === o.totalAmount || d.originalTotalAmount === o.totalAmount) &&
-            (d.servicePlanName?.toLowerCase().includes('starter') && o.servicePlanName?.toLowerCase().includes('starter'))
-          );
-          if (duplicateDetailed && duplicateDetailed.orderCode !== o.orderCode) {
-            return false; // Ẩn bản ghi đơn thô bị trùng lặp
-          }
-        }
-        return true;
-      });
-
+      const finalOrders = Array.from(uniqueMap.values());
       setOrders(finalOrders);
 
       // Quét đơn hàng trả góp chu kỳ để hiển thị banner nhắc hẹn
