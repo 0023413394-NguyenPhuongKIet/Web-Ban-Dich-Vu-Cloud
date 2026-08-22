@@ -10,6 +10,7 @@ COPY CloudService.Domain/CloudService.Domain.csproj ./CloudService.Domain/
 COPY CloudService.Application/CloudService.Application.csproj ./CloudService.Application/
 COPY CloudService.Infrastructure/CloudService.Infrastructure.csproj ./CloudService.Infrastructure/
 COPY CloudService.WebApi/CloudService.WebApi.csproj ./CloudService.WebApi/
+COPY CloudService.UnitTests/CloudService.UnitTests.csproj ./CloudService.UnitTests/
 
 # Restore NuGet packages
 RUN dotnet restore CloudService.sln

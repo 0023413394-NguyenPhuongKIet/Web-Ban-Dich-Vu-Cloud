@@ -30,7 +30,7 @@ jobs:
         run: dotnet build src/Backend/CloudService.sln --configuration Release --no-restore
 
       - name: Run Backend Unit Tests
-        run: dotnet test tests/CloudService.UnitTests/CloudService.UnitTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test src/Backend/CloudService.UnitTests/CloudService.UnitTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
   # ----------------------------------------------------
   # 2. Frontend CI: Lint, TypeCheck & Build (Next.js 16)
