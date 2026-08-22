@@ -356,14 +356,21 @@ export default function ContactPage() {
       if (res.error) {
         setErrorMessage(res.error);
       } else {
-        const orderData = res.data || {
-          orderCode: `ORD-${Date.now().toString().slice(-6)}`,
-          id: Math.floor(Math.random() * 1000) + 100,
-        };
+        // Backend trả về { success: true, data: { id, orderCode, ... } }
+        // fetchApi wrap thêm 1 lớp nữa → res.data = { success, data: {...} }
+        const rawData = res.data;
+        const orderData = (rawData?.data && rawData.data.id) 
+          ? rawData.data   // lấy từ { success: true, data: {...} }
+          : rawData || {
+              orderCode: `ORD-${Date.now().toString().slice(-6)}`,
+              id: Math.floor(Math.random() * 1000) + 100,
+            };
 
         // Luôn dùng orderCode & id từ backend để dedup chính xác khi my-orders load lại
         const backendId = orderData.id || Date.now();
         const backendOrderCode = orderData.orderCode || `ORD-${Date.now().toString().slice(-6)}`;
+
+        console.log('[Contact] Backend order saved:', { backendId, backendOrderCode, rawData });
 
         const newCreatedOrder = {
           id: backendId,
