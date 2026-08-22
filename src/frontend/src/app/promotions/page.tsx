@@ -40,16 +40,6 @@ export default function PromotionsPage() {
   useEffect(() => {
     async function loadPromos() {
       setLoading(true);
-      const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
-
-      if (localManagedPromos.length > 0) {
-        // Chỉ lấy những mã đang bật isActive
-        const activeOnly = localManagedPromos.filter((p: any) => p.isActive);
-        setPromotions(activeOnly);
-        setLoading(false);
-        return;
-      }
-
       try {
         const res = await fetchApi<any>('/api/Promotions/active');
         let fetched: Promotion[] = [];
@@ -58,9 +48,26 @@ export default function PromotionsPage() {
         } else if (res.data && Array.isArray(res.data.items) && res.data.items.length > 0) {
           fetched = res.data.items;
         }
-        setPromotions(fetched.length > 0 ? fetched : samplePromotions);
+
+        if (fetched.length > 0) {
+          setPromotions(fetched);
+        } else {
+          const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
+          if (localManagedPromos.length > 0) {
+            const activeOnly = localManagedPromos.filter((p: any) => p.isActive);
+            setPromotions(activeOnly);
+          } else {
+            setPromotions(samplePromotions);
+          }
+        }
       } catch {
-        setPromotions(samplePromotions);
+        const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
+        if (localManagedPromos.length > 0) {
+          const activeOnly = localManagedPromos.filter((p: any) => p.isActive);
+          setPromotions(activeOnly);
+        } else {
+          setPromotions(samplePromotions);
+        }
       } finally {
         setLoading(false);
       }

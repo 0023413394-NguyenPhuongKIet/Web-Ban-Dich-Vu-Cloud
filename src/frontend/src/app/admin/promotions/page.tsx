@@ -84,10 +84,10 @@ export default function AdminPromotionsManagementPage() {
         fetched = res.data.items;
       }
 
-      if (localSaved.length > 0) {
-        setPromotions(localSaved);
-      } else if (fetched.length > 0) {
+      if (fetched.length > 0) {
         setPromotions(fetched);
+      } else if (localSaved.length > 0) {
+        setPromotions(localSaved);
       } else {
         setPromotions(defaultPromotions);
       }
