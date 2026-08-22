@@ -20,7 +20,6 @@ COPY . .
 # Build & Publish (Release mode)
 RUN dotnet publish CloudService.WebApi/CloudService.WebApi.csproj \
     --configuration Release \
-    --no-restore \
     --output /app/publish \
     /p:UseAppHost=false
 

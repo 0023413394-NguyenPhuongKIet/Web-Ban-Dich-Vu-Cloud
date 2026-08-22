@@ -1,4 +1,6 @@
-﻿# Build artifacts
+# Build artifacts
+**/bin/
+**/obj/
 bin/
 obj/
 *.user

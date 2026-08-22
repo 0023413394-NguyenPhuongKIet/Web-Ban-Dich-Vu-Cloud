@@ -31,7 +31,7 @@ services:
       dockerfile: Dockerfile
     container_name: cloudservice-backend
     ports:
-      - "8080:8080"
+      - "5286:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
@@ -59,7 +59,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://backend:8080
+      - NEXT_PUBLIC_API_URL=http://localhost:5286
     depends_on:
       - backend
     networks:
