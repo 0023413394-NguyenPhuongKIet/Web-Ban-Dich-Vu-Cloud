@@ -1,4 +1,4 @@
-﻿namespace CloudService.Application.DTOs.Order
+namespace CloudService.Application.DTOs.Order
 {
     public class CreateOrderRequest
     {
@@ -10,5 +10,6 @@
         public string CustomerPhone { get; set; } = string.Empty;
         public string CompanyName { get; set; } = string.Empty;
         public string BillingCycle { get; set; } = string.Empty;
+        public decimal TotalAmount { get; set; }
     }
 }

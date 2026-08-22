@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using CloudService.Application.Common.Models;
 using CloudService.Application.DTOs.AuditLog;
 using CloudService.Application.Interfaces;
@@ -42,6 +43,17 @@ public class AuditLogsController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.IpAddress))
         {
             dto.IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+        }
+
+        if (!dto.UserId.HasValue)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                ?? User.FindFirst("sub")?.Value 
+                ?? User.FindFirst("id")?.Value;
+            if (int.TryParse(userIdClaim, out int parsedId))
+            {
+                dto.UserId = parsedId;
+            }
         }
 
         await _auditLogService.LogAsync(dto, cancellationToken);

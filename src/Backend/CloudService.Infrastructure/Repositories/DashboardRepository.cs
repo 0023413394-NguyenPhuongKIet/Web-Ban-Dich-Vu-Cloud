@@ -36,7 +36,32 @@ public class DashboardRepository : IDashboardRepository
 
     public async Task<int> GetTotalUsersCountAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.AppUsers.CountAsync(cancellationToken);
+        // Chỉ đếm tài khoản khách hàng (không tính Admin/Editor)
+        return await _context.AppUsers
+            .Include(u => u.Role)
+            .Where(u => u.Role.Name == "Customer")
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<List<ServicePlanDistributionDto>> GetServicePlanDistributionAsync(CancellationToken cancellationToken = default)
+    {
+        var totalOrders = await _context.OrderRequests.CountAsync(cancellationToken);
+        if (totalOrders == 0) return new List<ServicePlanDistributionDto>();
+
+        var distribution = await _context.OrderRequests
+            .Include(o => o.ServicePlan)
+            .GroupBy(o => o.ServicePlan != null ? o.ServicePlan.Name : "Khác")
+            .Select(g => new { PlanName = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToListAsync(cancellationToken);
+
+        // Tính % dựa trên tổng số đơn thực tế (để tổng = 100%)
+        return distribution.Select(d => new ServicePlanDistributionDto
+        {
+            Category = d.PlanName,
+            Count = d.Count,
+            Share = totalOrders > 0 ? (int)Math.Round((double)d.Count / totalOrders * 100) : 0
+        }).ToList();
     }
 
     public async Task<int> GetTotalActiveServicePlansCountAsync(CancellationToken cancellationToken = default)

@@ -48,8 +48,9 @@ public class OrderService
         if (string.IsNullOrWhiteSpace(request.BillingCycle))
             throw new DomainException("Chu kỳ thanh toán không được để trống.");
 
-        if (request.BillingCycle != "monthly" && request.BillingCycle != "yearly")
-            throw new DomainException("Chu kỳ thanh toán chỉ được chọn 'monthly' hoặc 'yearly'.");
+        var normalizedCycle = request.BillingCycle.ToLower().Contains("năm") || request.BillingCycle.ToLower().Contains("year")
+            ? "yearly"
+            : "monthly";
 
         if (request.Quantity <= 0)
             throw new DomainException("Số lượng phải lớn hơn 0.");
@@ -63,29 +64,27 @@ public class OrderService
 
         var planPrice = await _planPriceRepository.GetCurrentPriceAsync(
             request.ServicePlanId,
-            request.BillingCycle);
+            normalizedCycle);
 
-        if (planPrice == null)
-            throw new DomainException($"Không tìm thấy giá cho gói dịch vụ '{plan.Name}' với chu kỳ '{request.BillingCycle}'.");
-
-        var totalAmount = planPrice.SellingPrice * request.Quantity;
+        var totalAmount = request.TotalAmount > 0 
+            ? request.TotalAmount 
+            : (planPrice != null ? planPrice.SellingPrice * request.Quantity : 99000m);
         var orderCode = GenerateOrderCode();
 
         var order = new OrderRequest
         {
             ServicePlanId = request.ServicePlanId,
             OrderCode = orderCode,
-            UserId = userId,
             Quantity = request.Quantity,
-            TotalAmount = totalAmount,
-            Status = "Pending",
-            Note = request.Note,
             CustomerName = request.CustomerName.Trim(),
             CustomerEmail = request.CustomerEmail.Trim(),
             CustomerPhone = request.CustomerPhone.Trim(),
             CompanyName = request.CompanyName?.Trim() ?? string.Empty,
             BillingCycle = request.BillingCycle,
-            CreatedAt = DateTime.UtcNow
+            TotalAmount = totalAmount,
+            Status = "Pending",
+            Note = request.Note,
+            UserId = userId
         };
 
         await _orderRepository.AddAsync(order);

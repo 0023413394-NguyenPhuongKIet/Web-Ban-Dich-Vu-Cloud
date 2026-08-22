@@ -14,6 +14,7 @@ public class DashboardSummaryDto
     public int TotalAffiliateApplications { get; set; }
     public List<RecentOrderDto> RecentOrders { get; set; } = new();
     public List<MonthlyRevenueDto> MonthlyRevenue { get; set; } = new();
+    public List<ServicePlanDistributionDto> ServicePlanDistribution { get; set; } = new();
 }
 
 /// <summary>
@@ -39,4 +40,14 @@ public class MonthlyRevenueDto
     public int Month { get; set; }
     public decimal Revenue { get; set; }
     public int OrderCount { get; set; }
+}
+
+/// <summary>
+/// DTO phân bổ đơn hàng theo gói dịch vụ.
+/// </summary>
+public class ServicePlanDistributionDto
+{
+    public string Category { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public int Share { get; set; }
 }

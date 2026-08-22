@@ -26,6 +26,7 @@ public class DashboardService : IDashboardService
         var totalAffiliates = await _dashboardRepo.GetTotalAffiliateApplicationsCountAsync(cancellationToken);
 
         var recentOrders = await _dashboardRepo.GetRecentOrdersAsync(5, cancellationToken);
+        var servicePlanDistribution = await _dashboardRepo.GetServicePlanDistributionAsync(cancellationToken);
 
         var currentYear = DateTime.UtcNow.Year;
         var monthlyRevenue = await _dashboardRepo.GetMonthlyRevenueAsync(currentYear, cancellationToken);
@@ -40,7 +41,8 @@ public class DashboardService : IDashboardService
             TotalNewsArticles = totalArticles,
             TotalAffiliateApplications = totalAffiliates,
             RecentOrders = recentOrders,
-            MonthlyRevenue = monthlyRevenue
+            MonthlyRevenue = monthlyRevenue,
+            ServicePlanDistribution = servicePlanDistribution
         };
     }
 }
