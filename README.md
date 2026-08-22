@@ -86,4 +86,4 @@ npm run dev
 - [x] **PR#7:** Khuyến mãi & QR Code (Mã QR cho gói dịch vụ, khuyến mãi có thời hạn).
 - [x] **PR#8:** Quản trị & Thống kê (Dashboard, xuất Excel, Audit Log, Affiliate).
 - [x] **PR#9:** Tích hợp Frontend (Giao diện Landing Page & Admin Dashboard).
-- [ ] **PR#10:** Docker & CI/CD (Dockerfile, docker-compose, GitHub Actions).
+- [x] **PR#10:** Docker & CI/CD (Dockerfile, docker-compose, GitHub Actions).
