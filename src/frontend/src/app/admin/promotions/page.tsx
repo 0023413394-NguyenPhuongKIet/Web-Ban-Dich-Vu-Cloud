@@ -36,17 +36,6 @@ const defaultPromotions: Promotion[] = [
   },
   {
     id: 2,
-    code: 'CLOUD2026',
-    title: 'Ưu đãi gói Cloud VPS Pro 20%',
-    discountPercent: 20,
-    startDate: '2026-08-15T00:00:00Z',
-    endDate: '2026-09-30T23:59:59Z',
-    isActive: true,
-    isCurrentlyValid: true,
-    createdAt: '2026-08-15T00:00:00Z',
-  },
-  {
-    id: 3,
     code: 'CLOUD50',
     title: 'Siêu sale Cloud Server - Giảm ngay 50%',
     discountPercent: 50,

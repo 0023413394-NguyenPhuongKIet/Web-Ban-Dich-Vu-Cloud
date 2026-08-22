@@ -166,7 +166,7 @@ const defaultActivePromos: Promotion[] = [
   {
     id: 1,
     code: 'WELCOME2026',
-    title: 'Giảm 20% Cho Khách Hàng Mới',
+    title: 'Khuyến mãi chào mừng năm mới 2026 - Giảm 20% toàn bộ dịch vụ',
     discountPercent: 20,
     startDate: '2026-08-01T00:00:00Z',
     endDate: '2026-12-31T23:59:59Z',
@@ -176,19 +176,8 @@ const defaultActivePromos: Promotion[] = [
   },
   {
     id: 2,
-    code: 'CLOUD2026',
-    title: 'Ưu Đãi Gói Cloud VPS Pro 20%',
-    discountPercent: 20,
-    startDate: '2026-08-15T00:00:00Z',
-    endDate: '2026-09-30T23:59:59Z',
-    isActive: true,
-    isCurrentlyValid: true,
-    createdAt: '2026-08-15T00:00:00Z',
-  },
-  {
-    id: 3,
     code: 'CLOUD50',
-    title: 'Siêu Ưu Đãi Giảm 50% Toàn Bộ Gói',
+    title: 'Siêu sale Cloud Server - Giảm ngay 50%',
     discountPercent: 50,
     startDate: '2026-08-01T00:00:00Z',
     endDate: '2026-10-31T23:59:59Z',
@@ -219,21 +208,36 @@ export default function HomePage() {
     }
     loadLatestNews();
 
-    // Tải các mã giảm giá đang chạy
+    // Tải các mã giảm giá đang chạy có hiệu lực thực tế từ Database
     async function loadActivePromos() {
       try {
+        const res = await fetchApi<any>('/api/Promotions/active');
+        let fetched: Promotion[] = [];
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          fetched = res.data;
+        } else if (res.data && Array.isArray(res.data.items) && res.data.items.length > 0) {
+          fetched = res.data.items;
+        }
+
+        if (fetched.length > 0) {
+          setActivePromotions(fetched.slice(0, 3));
+        } else {
+          const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
+          if (localManagedPromos.length > 0) {
+            const activeOnly = localManagedPromos.filter((p: any) => p.isActive);
+            setActivePromotions(activeOnly.slice(0, 3));
+          } else {
+            setActivePromotions(defaultActivePromos);
+          }
+        }
+      } catch {
         const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
         if (localManagedPromos.length > 0) {
           const activeOnly = localManagedPromos.filter((p: any) => p.isActive);
           setActivePromotions(activeOnly.slice(0, 3));
         } else {
-          const res = await fetchApi<Promotion[]>('/api/Promotions');
-          if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-            setActivePromotions(res.data.slice(0, 3));
-          }
+          setActivePromotions(defaultActivePromos);
         }
-      } catch {
-        // fallback
       }
     }
     loadActivePromos();
