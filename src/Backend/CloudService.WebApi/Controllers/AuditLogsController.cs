@@ -31,4 +31,20 @@ public class AuditLogsController : ControllerBase
         var result = await _auditLogService.GetAuditLogsAsync(query, cancellationToken);
         return Ok(result);
     }
+
+    /// <summary>
+    /// [Admin] Ghi nhận một thao tác mới vào Audit Log
+    /// </summary>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<IActionResult> CreateLog([FromBody] CreateAuditLogDto dto, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(dto.IpAddress))
+        {
+            dto.IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+        }
+
+        await _auditLogService.LogAsync(dto, cancellationToken);
+        return StatusCode(StatusCodes.Status201Created, new { Message = "Đã ghi nhận Audit Log thành công." });
+    }
 }

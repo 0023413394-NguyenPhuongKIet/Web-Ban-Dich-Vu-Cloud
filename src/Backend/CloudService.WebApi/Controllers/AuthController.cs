@@ -18,11 +18,16 @@ public class AuthController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly IAuthService _authService;
+    private readonly Application.Interfaces.IAuditLogService _auditLogService;
 
-    public AuthController(ApplicationDbContext context, IAuthService authService)
+    public AuthController(
+        ApplicationDbContext context, 
+        IAuthService authService,
+        Application.Interfaces.IAuditLogService auditLogService)
     {
         _context = context;
         _authService = authService;
+        _auditLogService = auditLogService;
     }
 
     /// <summary>
@@ -57,6 +62,18 @@ public class AuthController : ControllerBase
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _context.SaveChangesAsync();
+
+        // 5. Ghi nhận Nhật ký Hệ thống (Audit Log: Đăng nhập thành công)
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+        await _auditLogService.LogAsync(new Application.DTOs.AuditLog.CreateAuditLogDto
+        {
+            UserId = user.Id,
+            Action = "Login",
+            EntityName = "AppUser",
+            EntityId = user.Id.ToString(),
+            Details = $"Người dùng '{user.FullName} ({user.Username})' [Role: {user.Role.Name}] đã đăng nhập hệ thống thành công qua JWT Access Token.",
+            IpAddress = clientIp
+        });
 
         return Ok(new AuthResponseDto(
             AccessToken: token,
@@ -133,6 +150,18 @@ public class AuthController : ControllerBase
         newUser.RefreshToken = refreshToken;
         newUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _context.SaveChangesAsync();
+
+        // 5. Ghi nhận Nhật ký Hệ thống (Audit Log: Đăng ký tài khoản)
+        var regIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+        await _auditLogService.LogAsync(new Application.DTOs.AuditLog.CreateAuditLogDto
+        {
+            UserId = newUser.Id,
+            Action = "Register",
+            EntityName = "AppUser",
+            EntityId = newUser.Id.ToString(),
+            Details = $"Khách hàng '{newUser.FullName} ({newUser.Username})' vừa tạo tài khoản mới trên hệ thống.",
+            IpAddress = regIp
+        });
 
         return Ok(new AuthResponseDto(
             AccessToken: token,
