@@ -27,6 +27,7 @@ COPY . .
 
 # Tắt Next.js telemetry khi build
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DOCKER_BUILD=true
 
 # Build production bundle (tạo .next/standalone nhờ output: 'standalone' trong next.config.ts)
 RUN npm run build

@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Tạo bundle độc lập cho Docker deployment (không cần node_modules)
-  output: "standalone",
+  // Chỉ bật output standalone khi build trong Docker, Vercel sẽ dùng serverless chuẩn
+  output: process.env.DOCKER_BUILD === "true" ? "standalone" : undefined,
 };
 
 export default nextConfig;
