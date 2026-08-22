@@ -23,17 +23,25 @@ public class AuditLogService : IAuditLogService
     {
         var (items, totalCount) = await _auditLogRepo.GetPagedAsync(query, cancellationToken);
 
-        var dtos = items.Select(a => new AuditLogDto
+        var dtos = items.Select(a =>
         {
-            Id = a.Id,
-            UserId = a.UserId,
-            UserName = a.User?.FullName ?? a.User?.Username,
-            Action = a.Action,
-            EntityName = a.EntityName,
-            EntityId = a.EntityId,
-            Details = a.Details,
-            IpAddress = a.IpAddress,
-            CreatedAt = a.CreatedAt
+            var userDisplayName = a.User != null
+                ? (!string.IsNullOrWhiteSpace(a.User.FullName) ? $"{a.User.FullName} ({a.User.Username})" : a.User.Username)
+                : null;
+
+            return new AuditLogDto
+            {
+                Id = a.Id,
+                UserId = a.UserId,
+                UserName = a.User?.Username ?? "admin",
+                PerformedBy = userDisplayName ?? a.User?.Username ?? "admin",
+                Action = a.Action,
+                EntityName = a.EntityName,
+                EntityId = a.EntityId,
+                Details = a.Details,
+                IpAddress = a.IpAddress,
+                CreatedAt = a.CreatedAt
+            };
         }).ToList();
 
         return new PagedResult<AuditLogDto>

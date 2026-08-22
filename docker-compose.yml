@@ -1,4 +1,8 @@
 services:
+
+  # ====================================================
+  # 1. SQL Server 2022 (Database)
+  # ====================================================
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: cloudservice-sqlserver
@@ -7,3 +11,68 @@ services:
       - MSSQL_SA_PASSWORD=YourPassword123!
     ports:
       - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - cloudservice-net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourPassword123! -Q 'SELECT 1' -C -N || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ====================================================
+  # 2. Backend ASP.NET Core Web API (.NET 9)
+  # ====================================================
+  backend:
+    build:
+      context: ./src/Backend
+      dockerfile: Dockerfile
+    container_name: cloudservice-backend
+    ports:
+      - "5286:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=CloudServiceDb;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - JwtSettings__SecretKey=SUPER_SECRET_KEY_FOR_CLOUD_SERVICE_PROJECT_IN4211_2026_SOFWARE_ARCHITECTURE
+      - JwtSettings__Issuer=CloudServiceAPI
+      - JwtSettings__Audience=CloudServiceApp
+      - JwtSettings__ExpiryMinutes=60
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - cloudservice-net
+    restart: unless-stopped
+
+  # ====================================================
+  # 3. Frontend Next.js (Node.js 20)
+  # ====================================================
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: cloudservice-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:5286
+    depends_on:
+      - backend
+    networks:
+      - cloudservice-net
+    restart: unless-stopped
+
+# ====================================================
+# Networks & Volumes
+# ====================================================
+networks:
+  cloudservice-net:
+    driver: bridge
+
+volumes:
+  sqlserver_data:
+    driver: local

@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudService.Infrastructure
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudService.WebApi", "CloudService.WebApi\CloudService.WebApi.csproj", "{B2F2E39D-2692-4261-BC05-F2C62CEC0347}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudService.UnitTests", "CloudService.UnitTests\CloudService.UnitTests.csproj", "{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{B2F2E39D-2692-4261-BC05-F2C62CEC0347}.Release|x64.Build.0 = Release|Any CPU
 		{B2F2E39D-2692-4261-BC05-F2C62CEC0347}.Release|x86.ActiveCfg = Release|Any CPU
 		{B2F2E39D-2692-4261-BC05-F2C62CEC0347}.Release|x86.Build.0 = Release|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Debug|x64.Build.0 = Debug|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Debug|x86.Build.0 = Debug|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Release|x64.ActiveCfg = Release|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Release|x64.Build.0 = Release|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Release|x86.ActiveCfg = Release|Any CPU
+		{FB4DF907-DEE6-4BFE-90A1-326A21F3A987}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

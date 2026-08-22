@@ -13,4 +13,5 @@ public interface IDashboardRepository
     Task<int> GetTotalAffiliateApplicationsCountAsync(CancellationToken cancellationToken = default);
     Task<List<RecentOrderDto>> GetRecentOrdersAsync(int count, CancellationToken cancellationToken = default);
     Task<List<MonthlyRevenueDto>> GetMonthlyRevenueAsync(int year, CancellationToken cancellationToken = default);
+    Task<List<ServicePlanDistributionDto>> GetServicePlanDistributionAsync(CancellationToken cancellationToken = default);
 }
