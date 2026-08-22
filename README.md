@@ -264,9 +264,3 @@ Toàn bộ quá trình phát triển được phân chia và quản lý khoa h�
 
 ---
 
-## 👥 Nhóm Tác Giả & Bản Quyền
-
-* **Sinh viên thực hiện:** Nguyễn Phương Kiệt
-* **Đơn vị:** Khoa Kỹ thuật & Công nghệ — Trường Đại học Đồng Tháp
-* **Môn học:** Phát triển phần mềm hướng đối tượng (IN4211)
-* **Giấy phép:** MIT License © 2026 CloudService Platform. All rights reserved.
