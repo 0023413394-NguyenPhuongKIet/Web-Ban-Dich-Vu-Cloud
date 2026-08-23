@@ -17,6 +17,46 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const userClean = username.trim();
+
+    // 1. Kiểm tra trống
+    if (!userClean) {
+      setError('Vui lòng nhập tên đăng nhập.');
+      return;
+    }
+    if (!password) {
+      setError('Vui lòng nhập mật khẩu.');
+      return;
+    }
+
+    // 2. Bẫy lỗi chống tấn công Script / HTML / XSS / SQL Injection
+    const xssPattern = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script|<iframe|<div|<img|--|;|\/\*|\*\/|union\s+select/i;
+    if (xssPattern.test(userClean)) {
+      setError('Tên đăng nhập chứa ký tự hoặc cú pháp không an toàn (ví dụ: <...>, script, thẻ html, ký tự tấn công).');
+      return;
+    }
+    if (xssPattern.test(password)) {
+      setError('Mật khẩu chứa ký tự không an toàn. Vui lòng kiểm tra lại.');
+      return;
+    }
+
+    // 3. Validation Tên đăng nhập: 3-50 ký tự, không chứa khoảng trắng
+    if (userClean.length < 3 || userClean.length > 50) {
+      setError('Tên đăng nhập phải có độ dài từ 3 đến 50 ký tự.');
+      return;
+    }
+    if (/\s/.test(userClean)) {
+      setError('Tên đăng nhập không được chứa khoảng trắng.');
+      return;
+    }
+
+    // 4. Validation Mật khẩu: tối thiểu 6 ký tự
+    if (password.length < 6) {
+      setError('Mật khẩu phải có tối thiểu 6 ký tự.');
+      return;
+    }
+
     setLoading(true);
     try {
       interface LoginResponse { 
@@ -27,13 +67,13 @@ export default function LoginPage() {
       }
       const { data, error: apiErr } = await fetchApi<LoginResponse>('/api/Auth/login', {
         method: 'POST',
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: userClean, password }),
       });
       
       const jwt = data?.accessToken || data?.token;
       if (jwt) {
         localStorage.setItem('jwt_token', jwt);
-        localStorage.setItem('username', data?.username || username);
+        localStorage.setItem('username', data?.username || userClean);
         localStorage.setItem('role', data?.role || '');
         if (data?.role === 'Admin' || data?.role === 'Editor') {
           router.push('/admin/dashboard');

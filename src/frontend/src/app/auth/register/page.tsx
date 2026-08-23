@@ -25,45 +25,56 @@ export default function RegisterPage() {
 
     // 1. Validation Họ và Tên (chỉ chứa chữ cái tiếng Việt và khoảng trắng, tối thiểu 2 ký tự)
     const nameClean = fullName.trim();
-    const nameRegex = /^[\p{L}\s]{2,50}$/u;
+    const nameRegex = /^[\p{L}\s]{2,80}$/u;
     if (!nameRegex.test(nameClean)) {
-      setError('Họ và tên chỉ được chứa chữ cái (hỗ trợ tiếng Việt có dấu) và khoảng trắng (từ 2 đến 50 ký tự, không chứa số).');
+      setError('Họ và tên chỉ được chứa chữ cái (hỗ trợ tiếng Việt có dấu) và khoảng trắng (từ 2 đến 80 ký tự, không chứa số hay ký tự đặc biệt).');
       return;
     }
 
-    // 2. Validation Tên đăng nhập (chữ cái không dấu, số, dấu gạch dưới, từ 3-20 ký tự)
+    // 2. Validation Tên đăng nhập (chữ cái không dấu, số, dấu gạch dưới, từ 3-30 ký tự)
     const userClean = username.trim();
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
     if (!usernameRegex.test(userClean)) {
-      setError('Tên đăng nhập phải từ 3 đến 20 ký tự, chỉ gồm chữ cái không dấu (a-z, A-Z), số (0-9) và dấu gạch dưới (_), không có khoảng trắng.');
+      setError('Tên đăng nhập phải từ 3 đến 30 ký tự, chỉ gồm chữ cái không dấu (a-z, A-Z), số (0-9) và dấu gạch dưới (_), không có khoảng trắng.');
       return;
     }
 
-    // 3. Validation Email (chuẩn định dạng email)
+    // 3. Validation Email (chuẩn định dạng email có đuôi tên miền hợp lệ)
     const emailClean = email.trim().toLowerCase();
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(vn|com|edu|net|org|io|info|biz|gov|co|me|cloud|ai|[a-z]{2,})$/i;
     if (!emailRegex.test(emailClean)) {
-      setError('Địa chỉ email không hợp lệ (ví dụ: ten@domain.vn, phải chứa "@" và tên miền hợp lệ).');
+      setError('Địa chỉ email không hợp lệ! Vui lòng nhập đúng định dạng (ví dụ: name@company.vn, phuongkiet@gmail.com có chứa @, tên miền và đuôi .vn, .com, .edu,...).');
       return;
     }
 
-    // 4. Validation Số điện thoại (nếu có nhập thì phải 10 chữ số bắt đầu bằng 0)
+    // 4. Validation Số điện thoại (nếu có nhập thì phải đúng 10 chữ số bắt đầu bằng 0)
     const phoneClean = phoneNumber.replace(/\s+/g, '');
     if (phoneClean) {
       const phoneRegex = /^0\d{9}$/;
       if (!phoneRegex.test(phoneClean)) {
-        setError('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0 (ví dụ: 0987654321).');
+        setError('Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0 (ví dụ: 0987654321).');
         return;
       }
     }
 
-    // 5. Validation Mật khẩu (tối thiểu 6 ký tự)
+    // 5. Bẫy lỗi chống chèn mã độc HTML / Script / XSS / SQL Injection
+    const xssPattern = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script|<iframe|<div|<img|--|;|\/\*|\*\/|union\s+select/i;
+    if (xssPattern.test(nameClean) || xssPattern.test(userClean) || xssPattern.test(emailClean) || (phoneClean && xssPattern.test(phoneClean))) {
+      setError('Thông tin nhập chứa ký tự hoặc thẻ HTML/Script không an toàn. Vui lòng chỉ nhập văn bản thuần túy.');
+      return;
+    }
+    if (xssPattern.test(password) || xssPattern.test(confirmPassword)) {
+      setError('Mật khẩu chứa ký tự không an toàn. Vui lòng kiểm tra lại.');
+      return;
+    }
+
+    // 6. Validation Mật khẩu (tối thiểu 6 ký tự)
     if (password.length < 6) {
       setError('Mật khẩu phải có tối thiểu 6 ký tự để đảm bảo an toàn.');
       return;
     }
 
-    // 6. Validation Khớp mật khẩu
+    // 7. Validation Khớp mật khẩu
     if (password !== confirmPassword) {
       setError('Xác nhận mật khẩu không khớp với mật khẩu đã nhập.');
       return;
