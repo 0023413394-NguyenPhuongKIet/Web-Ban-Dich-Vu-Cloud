@@ -60,9 +60,9 @@ export default function MyOrdersPage() {
     setLoading(true);
     const currentUsername = (localStorage.getItem('username') || '').trim().toLowerCase();
     const localStatuses = JSON.parse(localStorage.getItem('admin_order_status_overrides') || '{}');
-    const allLocalOrders: any[] = JSON.parse(localStorage.getItem('user_created_orders') || '[]');
 
-    // Chỉ lấy đơn hàng thuộc về user hiện tại (hoặc đơn tạo bởi user này)
+    // Lấy tất cả đơn local (chỉ của user hiện tại) - dùng để merge thông tin chu kỳ trả góp vào đơn backend
+    const allLocalOrders: any[] = JSON.parse(localStorage.getItem('user_created_orders') || '[]');
     const userLocalOrders = allLocalOrders.filter((o) => {
       if (!currentUsername) return false;
       const orderUser = (o.username || '').trim().toLowerCase();
@@ -79,55 +79,36 @@ export default function MyOrdersPage() {
         fetchedData = res.data.data;
       }
 
-      // Tập hợp id và orderCode đã có từ backend
-      const backendIds = new Set(fetchedData.map((o: any) => String(o.id)));
-      const backendOrderCodes = new Set(fetchedData.map((o: any) => o.orderCode).filter(Boolean));
+      // ✅ CHIẾN LƯỢC: Backend thành công → chỉ hiển thị đơn từ backend
+      // Merge thêm thông tin trả góp (remainingAmount, cycleAmount,...) từ localStorage vào đơn tương ứng
+      const finalOrders = fetchedData.map((backendOrder: any) => {
+        // Tìm bản ghi local tương ứng theo id hoặc orderCode để lấy thông tin trả góp chi tiết
+        const localMatch = userLocalOrders.find((l: any) =>
+          String(l.id) === String(backendOrder.id) ||
+          (l.orderCode && l.orderCode === backendOrder.orderCode)
+        );
 
-      // Loại bỏ đơn local đã có bản sao trên backend (dedup chính xác theo id hoặc orderCode)
-      const uniqueLocalOrders = userLocalOrders.filter(o => {
-        const sameId = backendIds.has(String(o.id));
-        const sameCode = o.orderCode && backendOrderCodes.has(o.orderCode);
-        if (sameId || sameCode) {
-          // Đơn này đã tồn tại trên backend, chỉ giữ version local nếu nó có thông tin chu kỳ phong phú hơn
-          const backendVersion = fetchedData.find((b: any) => String(b.id) === String(o.id) || b.orderCode === o.orderCode);
-          // Nếu backend thiếu thông tin remainingAmount/isPayingInstallment thì merge vào backend entry
-          if (backendVersion && (o.remainingAmount !== undefined || o.isPayingInstallment)) {
-            // Merge thông tin trả góp từ local vào backend entry
-            Object.assign(backendVersion, {
-              remainingAmount: backendVersion.remainingAmount ?? o.remainingAmount,
-              originalTotalAmount: backendVersion.originalTotalAmount ?? o.originalTotalAmount,
-              paidCycles: backendVersion.paidCycles ?? o.paidCycles,
-              totalInstallmentCycles: backendVersion.totalInstallmentCycles ?? o.totalInstallmentCycles,
-              cycleAmount: backendVersion.cycleAmount ?? o.cycleAmount,
-              isPayingInstallment: backendVersion.isPayingInstallment ?? o.isPayingInstallment,
-            });
-          }
-          return false; // Loại bỏ đơn local trùng lặp
+        const merged = {
+          ...backendOrder,
+          status: localStatuses[backendOrder.id] || localStatuses[backendOrder.orderCode] || backendOrder.status,
+        };
+
+        // Nếu có bản ghi local với thông tin trả góp phong phú hơn thì merge vào
+        if (localMatch) {
+          if (localMatch.remainingAmount !== undefined && merged.remainingAmount === undefined) merged.remainingAmount = localMatch.remainingAmount;
+          if (localMatch.originalTotalAmount !== undefined && merged.originalTotalAmount === undefined) merged.originalTotalAmount = localMatch.originalTotalAmount;
+          if (localMatch.paidCycles !== undefined && merged.paidCycles === undefined) merged.paidCycles = localMatch.paidCycles;
+          if (localMatch.totalInstallmentCycles !== undefined && merged.totalInstallmentCycles === undefined) merged.totalInstallmentCycles = localMatch.totalInstallmentCycles;
+          if (localMatch.cycleAmount !== undefined && merged.cycleAmount === undefined) merged.cycleAmount = localMatch.cycleAmount;
+          if (localMatch.isPayingInstallment !== undefined && merged.isPayingInstallment === undefined) merged.isPayingInstallment = localMatch.isPayingInstallment;
         }
-        return true; // Giữ đơn local chưa có trên backend
+
+        return merged;
       });
 
-      // Hợp nhất: đơn local không trùng (hiển thị ngay sau submit) + đơn backend
-      const combined = [...uniqueLocalOrders, ...fetchedData];
-      const uniqueMap = new Map();
-      combined.forEach((item) => {
-        const idKey = item.orderCode || String(item.id);
-        if (!uniqueMap.has(idKey)) {
-          uniqueMap.set(idKey, {
-            ...item,
-            status: localStatuses[item.id] || localStatuses[item.orderCode] || item.status
-          });
-        }
-      });
-
-      const finalOrders = Array.from(uniqueMap.values());
       setOrders(finalOrders);
 
       // Quét đơn hàng trả góp chu kỳ để hiển thị banner nhắc hẹn
-      // ĐIỀU KIỆN CHÍNH XÁC:
-      // 1. Đơn gốc chưa thanh toán dứt điểm (remainingAmount > 0) hoặc có trả góp
-      // 2. Không có đơn chu kỳ nào đang ở trạng thái Chờ duyệt (Pending)
-      // 3. Đã tới hoặc quá ngày đến hạn (nextDueDate <= hôm nay). Nếu vừa thanh toán hôm nay thì 3 tháng sau mới đến hạn!
       const pendingCycleOrder = finalOrders.find(o => o.isInstallmentOrder && o.status === 'Pending');
       
       const now = new Date();
@@ -135,37 +116,29 @@ export default function MyOrdersPage() {
       const dueOrder = finalOrders.find(o => {
         if (o.isInstallmentOrder) return false;
         if (o.status === 'Cancelled') return false;
-
-        // Kiểm tra xem đơn đã thanh toán dứt điểm chưa (nếu remainingAmount = 0 thì không nhắc nữa)
         if (o.remainingAmount === 0 && o.isPayingInstallment) return false;
 
-        // Tìm đơn thanh toán chu kỳ hoàn tất gần nhất của đơn gốc này
         const latestCompletedCycle = finalOrders.find(
           c => c.isInstallmentOrder && c.status === 'Completed' && (c as any).parentOrderCode === (o.orderCode || String(o.id))
         );
 
-        // Ngày bắt đầu tính mốc chu kỳ: là ngày duyệt chu kỳ gần nhất, hoặc ngày tạo đơn gốc
         const baseDate = latestCompletedCycle ? new Date(latestCompletedCycle.createdAt) : new Date(o.createdAt);
-        
-        // Ngày đến hạn tiếp theo là 3 tháng (90 ngày) sau mốc gần nhất
         const nextDueDate = (o as any).nextDueDate 
           ? new Date((o as any).nextDueDate) 
           : new Date(baseDate.getTime() + 90 * 24 * 60 * 60 * 1000);
 
-        // Chỉ hiển thị nhắc hẹn nếu ngày hiện tại đã tới hoặc qua ngày đến hạn (> 3 tháng kể từ lần trả gần nhất)
         const isDue = now >= nextDueDate;
-
         const hasInstallment = o.isPayingInstallment || (o.remainingAmount !== undefined && o.remainingAmount > 0);
         return hasInstallment && isDue;
       });
 
-      // Nếu đã đến hạn và chưa có đơn chu kỳ đang chờ duyệt thì hiện banner nhắc hẹn
       if (dueOrder && !pendingCycleOrder) {
         setDueOrderNotice(dueOrder);
       } else {
         setDueOrderNotice(null);
       }
     } catch {
+      // ❌ Backend lỗi → fallback dùng localStorage (chỉ khi không kết nối được server)
       setOrders(
         userLocalOrders.map((o) => ({
           ...o,
