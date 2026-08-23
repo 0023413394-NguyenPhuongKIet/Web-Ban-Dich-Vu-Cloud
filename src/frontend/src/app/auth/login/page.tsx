@@ -14,48 +14,47 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const validateField = (name: string, value: string): string => {
+    const clean = value.trim();
+    const xssPattern = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script|<iframe|<div|<img|--|;|\/\*|\*\/|union\s+select/i;
+
+    if (name === 'username') {
+      if (!clean) return 'Vui lòng nhập tên đăng nhập.';
+      if (xssPattern.test(clean)) return 'Tên đăng nhập chứa ký tự không an toàn.';
+      if (clean.length < 3 || clean.length > 50) return 'Tên đăng nhập phải từ 3 đến 50 ký tự.';
+      if (/\s/.test(clean)) return 'Tên đăng nhập không được chứa khoảng trắng.';
+    }
+
+    if (name === 'password') {
+      if (!value) return 'Vui lòng nhập mật khẩu.';
+      if (xssPattern.test(value)) return 'Mật khẩu chứa ký tự không an toàn.';
+      if (value.length < 6) return 'Mật khẩu phải có tối thiểu 6 ký tự.';
+    }
+
+    return '';
+  };
+
+  const handleBlur = (fieldName: string, val: string) => {
+    const err = validateField(fieldName, val);
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: err }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
+    const uErr = validateField('username', username);
+    const pErr = validateField('password', password);
+    if (uErr || pErr) {
+      setFieldErrors({ username: uErr, password: pErr });
+      setError(uErr || pErr);
+      return;
+    }
+
+    setFieldErrors({});
     const userClean = username.trim();
-
-    // 1. Kiểm tra trống
-    if (!userClean) {
-      setError('Vui lòng nhập tên đăng nhập.');
-      return;
-    }
-    if (!password) {
-      setError('Vui lòng nhập mật khẩu.');
-      return;
-    }
-
-    // 2. Bẫy lỗi chống tấn công Script / HTML / XSS / SQL Injection
-    const xssPattern = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script|<iframe|<div|<img|--|;|\/\*|\*\/|union\s+select/i;
-    if (xssPattern.test(userClean)) {
-      setError('Tên đăng nhập chứa ký tự hoặc cú pháp không an toàn (ví dụ: <...>, script, thẻ html, ký tự tấn công).');
-      return;
-    }
-    if (xssPattern.test(password)) {
-      setError('Mật khẩu chứa ký tự không an toàn. Vui lòng kiểm tra lại.');
-      return;
-    }
-
-    // 3. Validation Tên đăng nhập: 3-50 ký tự, không chứa khoảng trắng
-    if (userClean.length < 3 || userClean.length > 50) {
-      setError('Tên đăng nhập phải có độ dài từ 3 đến 50 ký tự.');
-      return;
-    }
-    if (/\s/.test(userClean)) {
-      setError('Tên đăng nhập không được chứa khoảng trắng.');
-      return;
-    }
-
-    // 4. Validation Mật khẩu: tối thiểu 6 ký tự
-    if (password.length < 6) {
-      setError('Mật khẩu phải có tối thiểu 6 ký tự.');
-      return;
-    }
 
     setLoading(true);
     try {
@@ -112,35 +111,54 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Tên Đăng Nhập
+                Tên Đăng Nhập *
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  required
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (fieldErrors.username) {
+                      setFieldErrors((p) => ({ ...p, username: validateField('username', e.target.value) }));
+                    }
+                  }}
+                  onBlur={(e) => handleBlur('username', e.target.value)}
                   placeholder="admin hoặc editor hoặc kiet"
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50/90 border border-slate-200 text-xs font-medium focus:bg-white focus:border-blue-500 focus:outline-none transition-colors"
+                  className={`w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50/90 border text-xs font-medium focus:bg-white focus:outline-none transition-colors ${
+                    fieldErrors.username ? 'border-rose-400 bg-rose-50/40 focus:border-rose-500' : 'border-slate-200 focus:border-blue-500'
+                  }`}
                 />
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <User className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 ${fieldErrors.username ? 'text-rose-500' : 'text-slate-400'}`} />
               </div>
+              {fieldErrors.username && (
+                <p className="text-[11px] text-rose-600 font-semibold mt-1 pl-1">
+                  ⚠ {fieldErrors.username}
+                </p>
+              )}
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Mật Khẩu
+                Mật Khẩu *
               </label>
               <div className="relative">
                 <input
                   type={showPw ? 'text' : 'password'}
-                  required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (fieldErrors.password) {
+                      setFieldErrors((p) => ({ ...p, password: validateField('password', e.target.value) }));
+                    }
+                  }}
+                  onBlur={(e) => handleBlur('password', e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-11 py-3 rounded-2xl bg-slate-50/90 border border-slate-200 text-xs font-medium focus:bg-white focus:border-blue-500 focus:outline-none transition-colors"
+                  className={`w-full pl-10 pr-11 py-3 rounded-2xl bg-slate-50/90 border text-xs font-medium focus:bg-white focus:outline-none transition-colors ${
+                    fieldErrors.password ? 'border-rose-400 bg-rose-50/40 focus:border-rose-500' : 'border-slate-200 focus:border-blue-500'
+                  }`}
                 />
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 ${fieldErrors.password ? 'text-rose-500' : 'text-slate-400'}`} />
                 <button
                   type="button"
                   tabIndex={-1}
@@ -150,11 +168,17 @@ export default function LoginPage() {
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="text-[11px] text-rose-600 font-semibold mt-1 pl-1">
+                  ⚠ {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-rose-50/90 border border-rose-200 text-rose-700 text-xs font-medium">
-                {error}
+              <div className="p-3.5 rounded-xl bg-rose-50/90 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+                <span>⚠</span>
+                <span>{error}</span>
               </div>
             )}
 
