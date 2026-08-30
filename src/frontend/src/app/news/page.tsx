@@ -212,24 +212,20 @@ export default function NewsPage() {
         }
         
         if (fetched.length > 0) {
-          // Chuẩn hóa category và tránh trùng ID
-          const normalizedFetched = fetched.map((item, idx) => ({
+          // Lọc chỉ hiển thị các bài viết đã xuất bản (isPublished) từ CSDL
+          const publishedFetched = fetched.filter((item) => item.isPublished !== false);
+          
+          const normalizedFetched = publishedFetched.map((item, idx) => ({
             ...item,
             id: item.id || 1000 + idx,
             category: (item.category || 'TinTuc').trim(),
-            thumbnailUrl: item.thumbnailUrl || initialArticles[idx % initialArticles.length].thumbnailUrl,
+            thumbnailUrl: item.thumbnailUrl || 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800',
           }));
 
-          const uniqueMap = new Map();
-          // Đưa dữ liệu mẫu vào trước
-          initialArticles.forEach((item) => uniqueMap.set(item.title.trim().toLowerCase(), item));
-          // Ghi đè bằng dữ liệu backend nếu có
-          normalizedFetched.forEach((item) => uniqueMap.set(item.title.trim().toLowerCase(), item));
-
-          // Merge view count từ localStorage SAU KHI đã có danh sách bài viết (client-side)
-          setArticles(mergeViewCounts(Array.from(uniqueMap.values())));
+          // Đồng bộ chính xác 100% với CSDL Backend / Trang quản trị Admin
+          setArticles(mergeViewCounts(normalizedFetched));
         } else {
-          // Không có dữ liệu từ API, dùng initialArticles nhưng merge view count
+          // Chỉ dùng dữ liệu mẫu khi CSDL rỗng hoàn toàn
           setArticles(mergeViewCounts(initialArticles));
         }
       } catch {

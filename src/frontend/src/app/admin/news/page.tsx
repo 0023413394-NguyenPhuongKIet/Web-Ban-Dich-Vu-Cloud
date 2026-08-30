@@ -193,36 +193,15 @@ export default function AdminNewsPage() {
           method: 'PUT',
           body: JSON.stringify(payload),
         });
-
-        setArticles((prev) =>
-          prev.map((a) =>
-            a.id === editingArticle.id ? { ...a, ...payload } : a
-          )
-        );
       } else {
         // Tạo mới bài viết
-        const res = await fetchApi<any>('/api/NewsArticles', {
+        await fetchApi<any>('/api/NewsArticles', {
           method: 'POST',
           body: JSON.stringify(payload),
         });
-
-        const newArt: ArticleItem = {
-          id: res.data?.id || Math.floor(Math.random() * 900) + 100,
-          title,
-          slug: title.toLowerCase().replace(/\s+/g, '-'),
-          summary,
-          content,
-          category,
-          thumbnailUrl,
-          isPublished,
-          viewCount: 0,
-          authorName: 'Tôi (Editor)',
-          createdAt: new Date().toISOString(),
-        };
-
-        setArticles((prev) => [newArt, ...prev]);
       }
 
+      await loadArticles();
       setIsModalOpen(false);
     } catch {
       // Cập nhật local nếu API offline
@@ -262,7 +241,7 @@ export default function AdminNewsPage() {
     const id = deleteNewsId;
     try {
       await fetchApi(`/api/NewsArticles/${id}`, { method: 'DELETE' });
-      setArticles((prev) => prev.filter((a) => a.id !== id));
+      await loadArticles();
     } catch {
       setArticles((prev) => prev.filter((a) => a.id !== id));
     } finally {
