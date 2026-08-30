@@ -69,3 +69,14 @@ export function generateVietQrUrl(params: {
   // Chuẩn API VietQR Quick Link (Template compact2 hoặc qr_only)
   return `https://img.vietqr.io/image/${bank}-${accNo}-compact2.png?amount=${amount}&addInfo=${desc}&accountName=${accName}`;
 }
+
+/**
+ * Tự động sinh mã QR chuyển hướng link URL
+ * Quét mã sẽ tự động mở đường link (VD: tới trang /order/1 hoặc /services)
+ */
+export function generateLinkQrUrl(targetUrl: string): string {
+  if (!targetUrl) return '';
+  // Sử dụng API sinh QR chuẩn công nghiệp (api.qrserver.com hoặc quickchart.io)
+  const encoded = encodeURIComponent(targetUrl);
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encoded}&margin=10`;
+}

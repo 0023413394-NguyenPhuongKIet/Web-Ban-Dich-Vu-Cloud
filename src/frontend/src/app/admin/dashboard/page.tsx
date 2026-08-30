@@ -53,10 +53,166 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchApi<Summary>('/api/Dashboard/summary').then(({ data }) => {
-      setSummary(data ?? null);
-      setLoading(false);
-    });
+    async function loadDashboard() {
+      setLoading(true);
+
+      try {
+        // Gọi đồng thời cả Dashboard summary, Orders, Users, ServicePlans
+        const [dashRes, ordersRes, usersRes, plansRes] = await Promise.all([
+          fetchApi<Summary>('/api/Dashboard/summary'),
+          fetchApi<any>('/api/Orders'),
+          fetchApi<any>('/api/Users'),
+          fetchApi<any>('/api/ServicePlans'),
+        ]);
+
+        // Đọc thêm các ghi đè / đơn hàng mới từ localStorage
+        const localUserOrders: any[] = typeof window !== 'undefined'
+          ? JSON.parse(localStorage.getItem('user_created_orders') || '[]')
+          : [];
+        const localStatuses: Record<string, string> = typeof window !== 'undefined'
+          ? JSON.parse(localStorage.getItem('admin_order_status_overrides') || '{}')
+          : {};
+
+        // Xử lý danh sách đơn hàng
+        let rawOrders: any[] = [];
+        if (ordersRes.data && Array.isArray(ordersRes.data.data)) {
+          rawOrders = ordersRes.data.data;
+        } else if (Array.isArray(ordersRes.data)) {
+          rawOrders = ordersRes.data;
+        } else if (ordersRes.data && Array.isArray(ordersRes.data.items)) {
+          rawOrders = ordersRes.data.items;
+        }
+
+        // Hợp nhất đơn hàng với localStorage
+        const combinedOrders = [...localUserOrders, ...rawOrders];
+        const uniqueOrdersMap = new Map<string | number, any>();
+        combinedOrders.forEach((item) => {
+          const idKey = item.orderCode || item.id;
+          if (idKey && !uniqueOrdersMap.has(idKey)) {
+            uniqueOrdersMap.set(idKey, {
+              ...item,
+              status: localStatuses[item.id] || localStatuses[item.orderCode] || item.status,
+            });
+          }
+        });
+        const allOrders = Array.from(uniqueOrdersMap.values());
+
+        // Xử lý danh sách người dùng
+        const usersList: any[] = Array.isArray(usersRes.data)
+          ? usersRes.data
+          : Array.isArray(usersRes.data?.items)
+          ? usersRes.data.items
+          : [];
+
+        // Xử lý danh sách gói dịch vụ
+        const plansList: any[] = Array.isArray(plansRes.data)
+          ? plansRes.data
+          : Array.isArray(plansRes.data?.items)
+          ? plansRes.data.items
+          : [];
+
+        // 1. Tính tổng đơn hàng
+        const totalOrdersCount = allOrders.length;
+
+        // 2. Tính tổng doanh thu (từ các đơn Completed)
+        const completedOrders = allOrders.filter((o) => o.status === 'Completed');
+        const calculatedRevenue = completedOrders.reduce((sum: number, o: any) => {
+          const val = Number(o.totalAmount ?? o.totalPrice ?? 0);
+          return sum + (isNaN(val) ? 0 : val);
+        }, 0);
+
+        // 3. Đếm số khách hàng (Customer)
+        const customerUsers = usersList.filter((u: any) => 
+          u.role === 'Customer' || u.roleName === 'Customer' || u.roleId === 3
+        );
+        const totalCustomersCount = customerUsers.length > 0 ? customerUsers.length : (usersList.length || 8);
+
+        // 4. Đếm số gói dịch vụ
+        const activePlansCount = plansList.filter((p: any) => p.isActive !== false).length || plansList.length || 4;
+
+        // 5. Doanh thu theo tháng
+        const currentYear = new Date().getFullYear();
+        const revenueByMonth: Record<number, { revenue: number; orderCount: number }> = {};
+        completedOrders.forEach((o: any) => {
+          const dateStr = o.createdAt || o.createdDate;
+          if (dateStr) {
+            const d = new Date(dateStr);
+            const m = d.getMonth() + 1;
+            if (!revenueByMonth[m]) {
+              revenueByMonth[m] = { revenue: 0, orderCount: 0 };
+            }
+            const val = Number(o.totalAmount ?? o.totalPrice ?? 0);
+            revenueByMonth[m].revenue += isNaN(val) ? 0 : val;
+            revenueByMonth[m].orderCount += 1;
+          }
+        });
+
+        // Chuyển sang mảng monthlyRevenue
+        let monthlyRevenue = Object.entries(revenueByMonth).map(([month, v]) => ({
+          year: currentYear,
+          month: parseInt(month),
+          revenue: v.revenue,
+          orderCount: v.orderCount,
+        })).sort((a, b) => a.month - b.month);
+
+        // Nếu API dashboard summary có trả về monthlyRevenue mà tính toán rỗng, ưu tiên dùng của API
+        if (monthlyRevenue.length === 0 && dashRes.data?.monthlyRevenue && dashRes.data.monthlyRevenue.length > 0) {
+          monthlyRevenue = dashRes.data.monthlyRevenue;
+        }
+
+        // 6. Phân bổ gói dịch vụ
+        const planCountMap: Record<string, number> = {};
+        allOrders.forEach((o: any) => {
+          const key = o.servicePlanName ?? o.planName ?? 'Gói Dịch Vụ Khác';
+          // Rút gọn tên gói để hiển thị biểu đồ đẹp
+          const cleanKey = key.split('(')[0].trim();
+          planCountMap[cleanKey] = (planCountMap[cleanKey] ?? 0) + 1;
+        });
+
+        let servicePlanDistribution = Object.entries(planCountMap)
+          .map(([category, count]) => ({
+            category,
+            count,
+            share: totalOrdersCount > 0 ? Math.round((count / totalOrdersCount) * 100) : 0,
+          }))
+          .sort((a, b) => b.count - a.count);
+
+        if (servicePlanDistribution.length === 0 && dashRes.data?.servicePlanDistribution) {
+          servicePlanDistribution = dashRes.data.servicePlanDistribution;
+        }
+
+        // 7. Đơn hàng gần đây
+        const recentOrders = [...allOrders]
+          .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+          .slice(0, 5)
+          .map((o) => ({
+            id: o.id,
+            customerName: o.customerName || o.username || 'Khách hàng',
+            customerEmail: o.customerEmail || '',
+            servicePlanName: o.servicePlanName ?? o.planName ?? 'Cloud VPS',
+            totalAmount: Number(o.totalAmount ?? o.totalPrice ?? 0),
+            status: o.status || 'Pending',
+            createdAt: o.createdAt || new Date().toISOString(),
+          }));
+
+        // Gán dữ liệu tổng hợp
+        setSummary({
+          totalRevenue: (dashRes.data?.totalRevenue && dashRes.data.totalRevenue > 0) ? dashRes.data.totalRevenue : calculatedRevenue,
+          totalOrders: (dashRes.data?.totalOrders && dashRes.data.totalOrders > 0) ? dashRes.data.totalOrders : totalOrdersCount,
+          totalUsers: (dashRes.data?.totalUsers && dashRes.data.totalUsers > 0) ? dashRes.data.totalUsers : totalCustomersCount,
+          totalActiveServicePlans: activePlansCount,
+          monthlyRevenue,
+          servicePlanDistribution,
+          recentOrders: recentOrders.length > 0 ? recentOrders : (dashRes.data?.recentOrders || []),
+        });
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadDashboard();
   }, []);
 
   const totalPlansCount = summary?.totalActiveServicePlans ?? summary?.totalPlans ?? 0;

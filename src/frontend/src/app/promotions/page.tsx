@@ -41,6 +41,11 @@ export default function PromotionsPage() {
     async function loadPromos() {
       setLoading(true);
       try {
+        // Luôn đọc localStorage trước để có dữ liệu admin đã thêm
+        const localManagedPromos: Promotion[] = JSON.parse(
+          localStorage.getItem('admin_managed_promotions') || '[]'
+        );
+
         const res = await fetchApi<any>('/api/Promotions/active');
         let fetched: Promotion[] = [];
         if (Array.isArray(res.data) && res.data.length > 0) {
@@ -49,22 +54,23 @@ export default function PromotionsPage() {
           fetched = res.data.items;
         }
 
-        if (fetched.length > 0) {
-          setPromotions(fetched);
+        // Gộp: ưu tiên localStorage (admin thêm/sửa), loại bỏ trùng id với backend
+        const fetchedIds = new Set(fetched.map((p: Promotion) => p.id));
+        const localOnly = localManagedPromos.filter((p) => !fetchedIds.has(p.id));
+        const merged = [...localOnly, ...fetched];
+
+        if (merged.length > 0) {
+          // Chỉ hiển thị các mã đang active
+          setPromotions(merged.filter((p) => p.isActive));
         } else {
-          const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
-          if (localManagedPromos.length > 0) {
-            const activeOnly = localManagedPromos.filter((p: any) => p.isActive);
-            setPromotions(activeOnly);
-          } else {
-            setPromotions(samplePromotions);
-          }
+          setPromotions(samplePromotions);
         }
       } catch {
-        const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
+        const localManagedPromos: Promotion[] = JSON.parse(
+          localStorage.getItem('admin_managed_promotions') || '[]'
+        );
         if (localManagedPromos.length > 0) {
-          const activeOnly = localManagedPromos.filter((p: any) => p.isActive);
-          setPromotions(activeOnly);
+          setPromotions(localManagedPromos.filter((p) => p.isActive));
         } else {
           setPromotions(samplePromotions);
         }

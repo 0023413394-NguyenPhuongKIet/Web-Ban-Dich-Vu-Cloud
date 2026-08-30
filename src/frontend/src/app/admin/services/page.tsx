@@ -46,6 +46,7 @@ interface ServicePlanItem {
   monthlyPrice: number;
   yearlyPrice: number;
   qrCodeUrl?: string;
+  redirectLink?: string;
   isActive: boolean;
 }
 
@@ -71,6 +72,7 @@ const initialPlans: ServicePlanItem[] = [
     monthlyPrice: 99000,
     yearlyPrice: 948000,
     qrCodeUrl: '/images/QR-code.jpg',
+    redirectLink: '/order/1',
     isActive: true,
   },
   {
@@ -87,6 +89,7 @@ const initialPlans: ServicePlanItem[] = [
     monthlyPrice: 249000,
     yearlyPrice: 2388000,
     qrCodeUrl: '/images/QR-code.jpg',
+    redirectLink: '/order/2',
     isActive: true,
   },
   {
@@ -103,6 +106,7 @@ const initialPlans: ServicePlanItem[] = [
     monthlyPrice: 499000,
     yearlyPrice: 4788000,
     qrCodeUrl: '/images/QR-code.jpg',
+    redirectLink: '/order/3',
     isActive: true,
   },
   {
@@ -119,6 +123,7 @@ const initialPlans: ServicePlanItem[] = [
     monthlyPrice: 49000,
     yearlyPrice: 468000,
     qrCodeUrl: '/images/QR-code.jpg',
+    redirectLink: '/order/4',
     isActive: true,
   },
   {
@@ -135,6 +140,7 @@ const initialPlans: ServicePlanItem[] = [
     monthlyPrice: 99000,
     yearlyPrice: 948000,
     qrCodeUrl: '/images/QR-code.jpg',
+    redirectLink: '/order/5',
     isActive: true,
   },
   {
@@ -151,6 +157,7 @@ const initialPlans: ServicePlanItem[] = [
     monthlyPrice: 280000,
     yearlyPrice: 280000,
     qrCodeUrl: '/images/QR-code.jpg',
+    redirectLink: '/order/6',
     isActive: true,
   }
 ];
@@ -182,6 +189,7 @@ export default function AdminServicesManagementPage() {
   const [planMonthlyPrice, setPlanMonthlyPrice] = useState<number>(99000);
   const [planYearlyPrice, setPlanYearlyPrice] = useState<number>(948000);
   const [planQrUrl, setPlanQrUrl] = useState('/images/QR-code.jpg');
+  const [planRedirectLink, setPlanRedirectLink] = useState('/order/1');
 
   // Form Cat states
   const [editingCat, setEditingCat] = useState<CategoryItem | null>(null);
@@ -239,6 +247,7 @@ export default function AdminServicesManagementPage() {
       setPlanMonthlyPrice(planItem.monthlyPrice);
       setPlanYearlyPrice(planItem.yearlyPrice);
       setPlanQrUrl(planItem.qrCodeUrl || '/images/QR-code.jpg');
+      setPlanRedirectLink(planItem.redirectLink || `/order/${planItem.id}`);
     } else {
       setEditingPlan(null);
       setPlanName('');
@@ -252,6 +261,7 @@ export default function AdminServicesManagementPage() {
       setPlanMonthlyPrice(199000);
       setPlanYearlyPrice(Math.round(199000 * 12 * 0.8));
       setPlanQrUrl('/images/QR-code.jpg');
+      setPlanRedirectLink('/order/1');
     }
     setIsPlanModalOpen(true);
   };
@@ -287,8 +297,9 @@ export default function AdminServicesManagementPage() {
     }
 
     const catObj = categories.find((c) => c.id === Number(planCatId));
+    const newPlanId = editingPlan ? editingPlan.id : Math.floor(Math.random() * 900) + 10;
     const newPlanItem: ServicePlanItem = {
-      id: editingPlan ? editingPlan.id : Math.floor(Math.random() * 900) + 10,
+      id: newPlanId,
       serviceCategoryId: Number(planCatId),
       categoryName: catObj ? catObj.name : 'VPS / Cloud Server',
       name: planName.trim(),
@@ -301,6 +312,7 @@ export default function AdminServicesManagementPage() {
       monthlyPrice: Number(planMonthlyPrice),
       yearlyPrice: Number(planYearlyPrice),
       qrCodeUrl: planQrUrl.trim() || '/images/QR-code.jpg',
+      redirectLink: planRedirectLink.trim() || `/order/${newPlanId}`,
       isActive: true,
     };
 
@@ -811,15 +823,35 @@ export default function AdminServicesManagementPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Đường Dẫn Ảnh Mã QR Thanh Toán</label>
-                <input
-                  type="text"
-                  value={planQrUrl}
-                  onChange={(e) => setPlanQrUrl(e.target.value)}
-                  placeholder="/images/QR-code.jpg"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:border-blue-500 focus:outline-none font-mono"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Ảnh Mã QR Thanh Toán Trực Tiếp
+                  </label>
+                  <input
+                    type="text"
+                    value={planQrUrl}
+                    onChange={(e) => setPlanQrUrl(e.target.value)}
+                    placeholder="/images/QR-code.jpg"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:border-blue-500 focus:outline-none font-mono"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Đường dẫn ảnh QR chuyển khoản ngân hàng VietQR</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Đường Link Chuyển Hướng Đặt Hàng *</span>
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Mã QR Giới Thiệu</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={planRedirectLink}
+                    onChange={(e) => setPlanRedirectLink(e.target.value)}
+                    placeholder="/order/1 hoặc https://domain.com/order/1"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:border-blue-500 focus:outline-none font-mono"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Đường link dẫn tới trang đặt hàng & nhập thông tin thanh toán</p>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-slate-100">
@@ -903,24 +935,71 @@ export default function AdminServicesManagementPage() {
         </div>
       )}
 
-      {/* MODAL 3: XEM MÃ QR THANH TOÁN CỦA GÓI */}
+      {/* MODAL 3: XEM MÃ QR THANH TOÁN & MÃ QR ĐIỀU HƯỚNG GÓI */}
       {isQrModalOpen && selectedPlanQr && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 className="text-base font-bold text-slate-900">Mã QR Gói {selectedPlanQr.name}</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 sm:p-8 text-center space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="badge-pill bg-blue-50 text-blue-700 border border-blue-200">
+                  Hệ Thống Mã QR Song Song
+                </span>
+                <h3 className="text-base font-bold text-slate-900 mt-1">
+                  Mã QR Gói {selectedPlanQr.name}
+                </h3>
+              </div>
               <button onClick={() => setIsQrModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center">
-              <img
-                src={selectedPlanQr.qrCodeUrl || '/images/QR-code.jpg'}
-                alt="QR Code"
-                className="w-48 h-auto rounded-xl object-contain shadow-sm"
-              />
-              <p className="text-[11px] text-slate-500 mt-2 font-mono">{selectedPlanQr.code} - {formatCurrency(selectedPlanQr.monthlyPrice)}/tháng</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* QR 1: Chuyển hướng tới trang đặt hàng thanh toán */}
+              <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200/80 flex flex-col items-center justify-between space-y-2">
+                <span className="text-[11px] font-extrabold text-blue-700 bg-blue-100/80 px-2.5 py-1 rounded-md">
+                  1. Mã QR Trang Giới Thiệu (Link Đặt Hàng)
+                </span>
+                {(() => {
+                  const targetUrl = selectedPlanQr.redirectLink?.startsWith('http')
+                    ? selectedPlanQr.redirectLink
+                    : (typeof window !== 'undefined' ? `${window.location.origin}${selectedPlanQr.redirectLink || `/order/${selectedPlanQr.id}`}` : `http://localhost:3000${selectedPlanQr.redirectLink || `/order/${selectedPlanQr.id}`}`);
+                  return (
+                    <>
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(targetUrl)}&margin=10`}
+                        alt="QR Điều Hướng Đặt Hàng"
+                        className="w-36 h-36 rounded-xl object-contain shadow-sm border border-white bg-white p-1"
+                      />
+                      <div className="text-left w-full space-y-1">
+                        <p className="text-[10px] text-slate-500 font-medium">Link đích quét mã:</p>
+                        <p className="text-[11px] font-mono text-blue-800 font-bold break-all bg-white/80 p-1.5 rounded-lg border border-blue-100">
+                          {selectedPlanQr.redirectLink || `/order/${selectedPlanQr.id}`}
+                        </p>
+                      </div>
+                    </>
+                  );
+                })()}
+                <p className="text-[10px] text-slate-500 italic">Quét để mở trang nhập thông tin và cấu hình thanh toán</p>
+              </div>
+
+              {/* QR 2: Mã QR thanh toán trực tiếp */}
+              <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 flex flex-col items-center justify-between space-y-2">
+                <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-md">
+                  2. Mã QR Thanh Toán Trực Tiếp
+                </span>
+                <img
+                  src={selectedPlanQr.qrCodeUrl || '/images/QR-code.jpg'}
+                  alt="QR Thanh Toán"
+                  className="w-36 h-36 rounded-xl object-contain shadow-sm border border-white bg-white p-1"
+                />
+                <div className="text-left w-full space-y-1">
+                  <p className="text-[10px] text-slate-500 font-medium">Giá gói dịch vụ:</p>
+                  <p className="text-[11px] font-mono text-emerald-800 font-extrabold bg-white/80 p-1.5 rounded-lg border border-emerald-100">
+                    {formatCurrency(selectedPlanQr.monthlyPrice)} / tháng
+                  </p>
+                </div>
+                <p className="text-[10px] text-slate-500 italic">Ảnh QR thanh toán trực tiếp qua tài khoản ngân hàng</p>
+              </div>
             </div>
 
             <button
