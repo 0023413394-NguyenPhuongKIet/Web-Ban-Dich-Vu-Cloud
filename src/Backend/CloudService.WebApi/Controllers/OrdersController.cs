@@ -51,6 +51,14 @@ public class OrdersController : ControllerBase
         return Ok(new { success = true, data = result });
     }
 
+    [HttpGet("top-customers")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTopCustomers([FromQuery] int count = 10, CancellationToken cancellationToken = default)
+    {
+        var result = await _orderService.GetTopSpendingCustomersAsync(count, cancellationToken);
+        return Ok(new { success = true, data = result });
+    }
+
     [HttpGet]
     [Authorize(Roles = "Admin,Editor")]
     [ProducesResponseType(StatusCodes.Status200OK)]

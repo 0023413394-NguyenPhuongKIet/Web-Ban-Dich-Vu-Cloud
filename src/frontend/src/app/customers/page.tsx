@@ -165,117 +165,102 @@ export default function CustomersPage() {
     }
   }, []);
 
-  // Tính toán TOP 3 KHÁCH HÀNG CÓ TỔNG GIÁ TRỊ ĐƠN HÀNG CAO NHẤT
+  // Tính toán TOP KHÁCH HÀNG CÓ TỔNG GIÁ TRỊ ĐƠN HÀNG CAO NHẤT (Dữ liệu thực 100% từ Database)
   useEffect(() => {
     async function calculateTopCustomers() {
       try {
-        let allOrders: any[] = [];
+        let rawTopList: any[] = [];
+        
+        // 1. Ưu tiên gọi API public top-customers từ Backend CSDL
         try {
-          const res = await fetchApi<any>('/api/Orders?pageSize=100');
-          if (res.data && Array.isArray(res.data.items)) {
-            allOrders = res.data.items;
-          } else if (Array.isArray(res.data)) {
-            allOrders = res.data;
+          const res = await fetchApi<any>('/api/Orders/top-customers?count=5');
+          if (res.data && Array.isArray(res.data)) {
+            rawTopList = res.data;
+          } else if (Array.isArray(res.data?.items)) {
+            rawTopList = res.data.items;
           }
         } catch {
-          // ignore
+          // fallback sang đọc tất cả đơn nếu có quyền
         }
 
-        // Lấy thêm các đơn tạo trong LocalStorage
-        const localCreatedOrders: any[] = JSON.parse(localStorage.getItem('user_created_orders') || '[]');
-        allOrders = [...allOrders, ...localCreatedOrders];
-
-        // Group by Customer (Email or Name)
-        const customerMap = new Map<string, { name: string; email: string; totalSpent: number; orderCount: number }>();
-
-        allOrders.forEach((o) => {
-          const name = (o.customerName || o.username || 'Khách Hàng').trim();
-          const email = (o.customerEmail || '').trim().toLowerCase();
-          const key = email || name.toLowerCase();
-          const amount = Number(o.totalAmount || o.totalPrice || 0);
-
-          if (!customerMap.has(key)) {
-            customerMap.set(key, { name, email, totalSpent: 0, orderCount: 0 });
-          }
-          const curr = customerMap.get(key)!;
-          curr.totalSpent += amount;
-          curr.orderCount += 1;
-        });
-
-        // Top default fallback nếu dữ liệu đơn chưa nhiều
-        const defaultTopList: TopCustomer[] = [
-          {
-            rank: 1,
-            name: 'Nguyễn Phương Kiệt',
-            email: 'phuongkiet865@gmail.com',
-            totalSpent: 2988000,
-            orderCount: 3,
-            badge: 'VIP Platinum',
-            avatarColor: 'bg-amber-500',
-            initials: 'PK'
-          },
-          {
-            rank: 2,
-            name: 'Trần Minh Hoàng',
-            email: 'hoang.tran@fintech.vn',
-            totalSpent: 2395000,
-            orderCount: 2,
-            badge: 'VIP Gold',
-            avatarColor: 'bg-slate-500',
-            initials: 'MH'
-          },
-          {
-            rank: 3,
-            name: 'Nguyễn Lê Quỳnh Anh',
-            email: 'quynhanh@retail.vn',
-            totalSpent: 1494000,
-            orderCount: 2,
-            badge: 'VIP Silver',
-            avatarColor: 'bg-amber-700',
-            initials: 'QA'
-          }
-        ];
-
-        const sorted = Array.from(customerMap.values())
-          .filter(c => c.totalSpent > 0)
-          .sort((a, b) => b.totalSpent - a.totalSpent);
-
-        if (sorted.length >= 3) {
-          const formattedTop: TopCustomer[] = [
-            {
-              rank: 1,
-              name: sorted[0].name,
-              email: sorted[0].email,
-              totalSpent: sorted[0].totalSpent,
-              orderCount: sorted[0].orderCount,
-              badge: 'Top 1 Chi Tiêu Cao Nhất',
-              avatarColor: 'bg-amber-500',
-              initials: sorted[0].name.split(' ').map(n => n[0]).slice(-2).join('').toUpperCase() || 'VIP'
-            },
-            {
-              rank: 2,
-              name: sorted[1].name,
-              email: sorted[1].email,
-              totalSpent: sorted[1].totalSpent,
-              orderCount: sorted[1].orderCount,
-              badge: 'Top 2 Khách Hàng Tiêu Biểu',
-              avatarColor: 'bg-slate-500',
-              initials: sorted[1].name.split(' ').map(n => n[0]).slice(-2).join('').toUpperCase() || 'VIP'
-            },
-            {
-              rank: 3,
-              name: sorted[2].name,
-              email: sorted[2].email,
-              totalSpent: sorted[2].totalSpent,
-              orderCount: sorted[2].orderCount,
-              badge: 'Top 3 Khách Hàng Thân Thiết',
-              avatarColor: 'bg-amber-700',
-              initials: sorted[2].name.split(' ').map(n => n[0]).slice(-2).join('').toUpperCase() || 'VIP'
+        // 2. Nếu endpoint chưa có dữ liệu, đọc từ danh sách đơn hàng
+        if (rawTopList.length === 0) {
+          let allOrders: any[] = [];
+          try {
+            const res = await fetchApi<any>('/api/Orders?pageSize=100');
+            if (res.data && Array.isArray(res.data.items)) {
+              allOrders = res.data.items;
+            } else if (Array.isArray(res.data)) {
+              allOrders = res.data;
             }
-          ];
-          setTopCustomers(formattedTop);
-        } else {
-          setTopCustomers(defaultTopList);
+          } catch {}
+
+          const localCreatedOrders: any[] = JSON.parse(localStorage.getItem('user_created_orders') || '[]');
+          allOrders = [...allOrders, ...localCreatedOrders];
+
+          const customerMap = new Map<string, { name: string; email: string; totalSpent: number; orderCount: number }>();
+
+          allOrders.forEach((o) => {
+            const name = (o.customerName || o.username || 'Khách Hàng').trim();
+            const email = (o.customerEmail || '').trim().toLowerCase();
+            const key = email || name.toLowerCase();
+            const amount = Number(o.totalAmount || o.totalPrice || 0);
+
+            if (!customerMap.has(key)) {
+              customerMap.set(key, { name, email, totalSpent: 0, orderCount: 0 });
+            }
+            const curr = customerMap.get(key)!;
+            curr.totalSpent += amount;
+            curr.orderCount += 1;
+          });
+
+          rawTopList = Array.from(customerMap.values())
+            .filter((c) => c.totalSpent > 0 || c.orderCount > 0)
+            .sort((a, b) => b.totalSpent - a.totalSpent);
+        }
+
+        if (rawTopList.length > 0) {
+          const formatted: TopCustomer[] = rawTopList.map((item, idx) => {
+            const rank = (idx + 1) as 1 | 2 | 3;
+            const name = item.name || 'Khách Hàng';
+            const email = item.email || '';
+            const totalSpent = Number(item.totalSpent || 0);
+            const orderCount = Number(item.orderCount || 1);
+            
+            const initials = name
+              .split(' ')
+              .map((n: string) => n[0])
+              .filter(Boolean)
+              .slice(-2)
+              .join('')
+              .toUpperCase() || 'KH';
+
+            let badge = 'Khách Hàng Thân Thiết';
+            let avatarColor = 'bg-blue-600';
+            if (idx === 0) {
+              badge = 'Quán Quân Chi Tiêu';
+              avatarColor = 'bg-amber-500';
+            } else if (idx === 1) {
+              badge = 'Huy Chương Bạc';
+              avatarColor = 'bg-slate-500';
+            } else if (idx === 2) {
+              badge = 'Huy Chương Đồng';
+              avatarColor = 'bg-amber-700';
+            }
+
+            return {
+              rank: (idx < 3 ? rank : 3) as 1 | 2 | 3,
+              name,
+              email,
+              totalSpent,
+              orderCount,
+              badge,
+              avatarColor,
+              initials,
+            };
+          });
+
+          setTopCustomers(formatted);
         }
       } catch {
         // fallback
@@ -325,7 +310,7 @@ export default function CustomersPage() {
       name: cleanName,
       role: cleanRole,
       plan: selectedService,
-      avatar: cleanName.split(' ').map(n => n[0]).slice(-2).join('').toUpperCase(),
+      avatar: cleanName.split(' ').map((n: string) => n[0]).filter(Boolean).slice(-2).join('').toUpperCase() || 'KH',
       avatarColor: 'bg-indigo-600',
       rating,
       content: cleanContent,
@@ -347,9 +332,9 @@ export default function CustomersPage() {
     }, 600);
   };
 
-  const top1 = topCustomers.find(c => c.rank === 1);
-  const top2 = topCustomers.find(c => c.rank === 2);
-  const top3 = topCustomers.find(c => c.rank === 3);
+  const top1 = topCustomers[0];
+  const top2 = topCustomers[1];
+  const top3 = topCustomers[2];
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
@@ -389,8 +374,8 @@ export default function CustomersPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 pt-14">
 
-        {/* 2. BẢNG VINH DANH TOP 3 KHÁCH HÀNG CÓ TỔNG GIÁ TRỊ ĐƠN HÀNG CAO NHẤT (Top 1 ở giữa, Top 2 bên trái, Top 3 bên phải) */}
-        {top1 && top2 && top3 && (
+        {/* 2. BẢNG VINH DANH TOP KHÁCH HÀNG (Dữ liệu thực tế 100% từ Database đơn hàng) */}
+        {top1 && (
           <section className="space-y-8">
             <div className="text-center space-y-2">
               <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 px-3.5 py-1.5 rounded-full border border-amber-200 shadow-sm">
@@ -398,10 +383,10 @@ export default function CustomersPage() {
                 <span>Bảng Vinh Danh Khách Hàng VIP</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                Top 3 Khách Hàng Có Tổng Giá Trị Đơn Hàng Cao Nhất
+                Top Khách Hàng Có Tổng Giá Trị Đơn Hàng Cao Nhất
               </h2>
               <p className="text-xs text-slate-500 max-w-xl mx-auto">
-                Tri ân các đối tác và khách hàng có tổng chi tiêu tích lũy lớn nhất hệ thống CloudVerse
+                Tri ân các đối tác và khách hàng có tổng chi tiêu tích lũy lớn nhất trên hệ thống CloudVerse (Cập nhật thời gian thực từ CSDL)
               </p>
             </div>
 
@@ -409,29 +394,37 @@ export default function CustomersPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end max-w-5xl mx-auto pt-4">
               
               {/* TOP 2 - VIỀN BẠC (Silver) */}
-              <div className="relative p-6 rounded-3xl bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-lg hover:shadow-xl transition-all flex flex-col items-center text-center space-y-3 order-2 md:order-1 transform hover:-translate-y-1">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-slate-400 to-slate-600 text-white font-bold text-xs shadow-md flex items-center gap-1.5">
-                  <Medal className="w-4 h-4 text-slate-200" />
-                  <span>TOP 2 • HUY CHƯƠNG BẠC</span>
-                </div>
-
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-slate-300 to-slate-500 border-2 border-slate-300 text-white flex items-center justify-center font-extrabold text-lg shadow-md mt-2">
-                  {top2.initials}
-                </div>
-
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900">{top2.name}</h3>
-                  <p className="text-xs text-slate-500">{top2.email}</p>
-                </div>
-
-                <div className="w-full p-3 rounded-2xl bg-slate-100/80 border border-slate-200">
-                  <div className="text-[11px] text-slate-500 font-semibold">Tổng Tiền Đã Đăng Ký:</div>
-                  <div className="text-lg font-extrabold text-slate-800 font-mono mt-0.5">
-                    {formatCurrency(top2.totalSpent)}
+              {top2 ? (
+                <div className="relative p-6 rounded-3xl bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-lg hover:shadow-xl transition-all flex flex-col items-center text-center space-y-3 order-2 md:order-1 transform hover:-translate-y-1">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-slate-400 to-slate-600 text-white font-bold text-xs shadow-md flex items-center gap-1.5">
+                    <Medal className="w-4 h-4 text-slate-200" />
+                    <span>TOP 2 • HUY CHƯƠNG BẠC</span>
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">{top2.orderCount} đơn dịch vụ hoàn tất</div>
+
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-slate-300 to-slate-500 border-2 border-slate-300 text-white flex items-center justify-center font-extrabold text-lg shadow-md mt-2">
+                    {top2.initials}
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">{top2.name}</h3>
+                    <p className="text-xs text-slate-500">{top2.email}</p>
+                  </div>
+
+                  <div className="w-full p-3 rounded-2xl bg-slate-100/80 border border-slate-200">
+                    <div className="text-[11px] text-slate-500 font-semibold">Tổng Tiền Đã Đăng Ký:</div>
+                    <div className="text-lg font-extrabold text-slate-800 font-mono mt-0.5">
+                      {formatCurrency(top2.totalSpent)}
+                    </div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">{top2.orderCount} đơn dịch vụ hoàn tất</div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-6 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-300 flex flex-col items-center text-center space-y-2 order-2 md:order-1 opacity-70">
+                  <Medal className="w-8 h-8 text-slate-400" />
+                  <div className="text-xs font-bold text-slate-700">TOP 2 • Vị trí trống</div>
+                  <p className="text-[11px] text-slate-500">Đăng ký đơn hàng tiếp theo để nhận vị trí này</p>
+                </div>
+              )}
 
               {/* TOP 1 - VIỀN VÀNG (Gold) - ĐỨNG GIỮA & NỔI BẬT NHẤT */}
               <div className="relative p-8 rounded-3xl bg-gradient-to-b from-amber-50/90 via-amber-50/40 to-white border-4 border-amber-400 shadow-2xl shadow-amber-500/20 flex flex-col items-center text-center space-y-4 order-1 md:order-2 md:-translate-y-4 transform hover:-translate-y-5 transition-all">
@@ -465,29 +458,37 @@ export default function CustomersPage() {
               </div>
 
               {/* TOP 3 - VIỀN ĐỒNG (Bronze) */}
-              <div className="relative p-6 rounded-3xl bg-gradient-to-b from-amber-50/40 to-white border-2 border-amber-600/60 shadow-lg hover:shadow-xl transition-all flex flex-col items-center text-center space-y-3 order-3 md:order-3 transform hover:-translate-y-1">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-700 to-amber-800 text-white font-bold text-xs shadow-md flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-amber-300" />
-                  <span>TOP 3 • HUY CHƯƠNG ĐỒNG</span>
-                </div>
-
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-800 border-2 border-amber-600 text-white flex items-center justify-center font-extrabold text-lg shadow-md mt-2">
-                  {top3.initials}
-                </div>
-
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900">{top3.name}</h3>
-                  <p className="text-xs text-slate-500">{top3.email}</p>
-                </div>
-
-                <div className="w-full p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
-                  <div className="text-[11px] text-amber-900 font-semibold">Tổng Tiền Đã Đăng Ký:</div>
-                  <div className="text-lg font-extrabold text-amber-800 font-mono mt-0.5">
-                    {formatCurrency(top3.totalSpent)}
+              {top3 ? (
+                <div className="relative p-6 rounded-3xl bg-gradient-to-b from-amber-50/40 to-white border-2 border-amber-600/60 shadow-lg hover:shadow-xl transition-all flex flex-col items-center text-center space-y-3 order-3 md:order-3 transform hover:-translate-y-1">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-700 to-amber-800 text-white font-bold text-xs shadow-md flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-amber-300" />
+                    <span>TOP 3 • HUY CHƯƠNG ĐỒNG</span>
                   </div>
-                  <div className="text-[10px] text-amber-700 mt-0.5">{top3.orderCount} đơn dịch vụ hoàn tất</div>
+
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-800 border-2 border-amber-600 text-white flex items-center justify-center font-extrabold text-lg shadow-md mt-2">
+                    {top3.initials}
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900">{top3.name}</h3>
+                    <p className="text-xs text-slate-500">{top3.email}</p>
+                  </div>
+
+                  <div className="w-full p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
+                    <div className="text-[11px] text-amber-900 font-semibold">Tổng Tiền Đã Đăng Ký:</div>
+                    <div className="text-lg font-extrabold text-amber-800 font-mono mt-0.5">
+                      {formatCurrency(top3.totalSpent)}
+                    </div>
+                    <div className="text-[10px] text-amber-700 mt-0.5">{top3.orderCount} đơn dịch vụ hoàn tất</div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-6 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-300 flex flex-col items-center text-center space-y-2 order-3 md:order-3 opacity-70">
+                  <Award className="w-8 h-8 text-amber-600/70" />
+                  <div className="text-xs font-bold text-slate-700">TOP 3 • Vị trí trống</div>
+                  <p className="text-[11px] text-slate-500">Đăng ký đơn hàng tiếp theo để nhận vị trí này</p>
+                </div>
+              )}
 
             </div>
           </section>

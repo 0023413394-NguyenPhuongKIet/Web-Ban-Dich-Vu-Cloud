@@ -199,4 +199,37 @@ public class OrderService
             BillingCycle = order.BillingCycle
         };
     }
+
+    public async Task<IEnumerable<TopCustomerDto>> GetTopSpendingCustomersAsync(int count = 10, CancellationToken cancellationToken = default)
+    {
+        var orders = await _orderRepository.GetAllAsync(cancellationToken);
+        
+        var grouped = orders
+            .Where(o => !o.IsDeleted)
+            .GroupBy(o => !string.IsNullOrWhiteSpace(o.CustomerEmail) ? o.CustomerEmail.Trim().ToLower() : (!string.IsNullOrWhiteSpace(o.CustomerName) ? o.CustomerName.Trim().ToLower() : "khach-hang"))
+            .Select(g =>
+            {
+                var first = g.OrderByDescending(x => x.CreatedAt).First();
+                return new TopCustomerDto
+                {
+                    Name = !string.IsNullOrWhiteSpace(first.CustomerName) ? first.CustomerName.Trim() : (first.User?.FullName ?? "Khách Hàng"),
+                    Email = !string.IsNullOrWhiteSpace(first.CustomerEmail) ? first.CustomerEmail.Trim() : (first.User?.Email ?? ""),
+                    TotalSpent = g.Sum(x => x.TotalAmount),
+                    OrderCount = g.Count()
+                };
+            })
+            .Where(c => c.TotalSpent > 0 || c.OrderCount > 0)
+            .OrderByDescending(c => c.TotalSpent)
+            .ThenByDescending(c => c.OrderCount)
+            .Take(count)
+            .ToList();
+
+        for (int i = 0; i < grouped.Count; i++)
+        {
+            grouped[i].Rank = i + 1;
+            grouped[i].Badge = i == 0 ? "Quán Quân Chi Tiêu" : (i == 1 ? "Huy Chương Bạc" : (i == 2 ? "Huy Chương Đồng" : "Khách Hàng Thân Thiết"));
+        }
+
+        return grouped;
+    }
 }
