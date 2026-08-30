@@ -53,7 +53,7 @@ public class ExceptionHandlingMiddleware
             {
                 Status = (int)HttpStatusCode.InternalServerError,
                 Title = "Lỗi hệ thống",
-                Detail = "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.",
+                Detail = exception.Message + (exception.InnerException != null ? " | " + exception.InnerException.Message : ""),
                 Type = "https://tools.ietf.org/html/rfc7807"
             }
         };

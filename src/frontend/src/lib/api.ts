@@ -29,7 +29,7 @@ export async function fetchApi<T>(
     }
 
     const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
+    if (contentType && contentType.includes('json')) {
       const json = await response.json();
       if (!response.ok) {
         return {
