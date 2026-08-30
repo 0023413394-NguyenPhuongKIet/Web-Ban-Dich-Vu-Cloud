@@ -29,30 +29,41 @@ public class HealthController : ControllerBase
     [HttpGet("db")]
     public async Task<IActionResult> GetDbStatus()
     {
+        var conn = _context.Database.GetDbConnection();
+        var connStr = conn.ConnectionString;
+        var maskedConnStr = System.Text.RegularExpressions.Regex.Replace(connStr ?? "", "(?i)password=[^;]+", "Password=***");
+
         try
         {
-            bool canConnect = await _context.Database.CanConnectAsync();
-            int userCount = 0;
-            if (canConnect)
-            {
-                userCount = await _context.AppUsers.CountAsync();
-            }
+            await conn.OpenAsync();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM AppUsers";
+            var count = await cmd.ExecuteScalarAsync();
+            conn.Close();
+
             return Ok(new
             {
-                DatabaseConnected = canConnect,
+                DatabaseConnected = true,
                 Provider = _context.Database.ProviderName,
-                UsersCount = userCount,
-                Message = canConnect ? "Kết nối CSDL thành công!" : "Không thể kết nối CSDL."
+                DataSource = conn.DataSource,
+                Database = conn.Database,
+                UsersCount = count,
+                ConnectionString = maskedConnStr,
+                Message = "Kết nối CSDL thành công!"
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new
+            return Ok(new
             {
                 DatabaseConnected = false,
+                Provider = _context.Database.ProviderName,
+                DataSource = conn.DataSource,
+                Database = conn.Database,
+                ConnectionString = maskedConnStr,
                 Error = ex.Message,
                 InnerError = ex.InnerException?.Message,
-                StackTrace = ex.StackTrace
+                Message = "Lỗi kết nối CSDL: " + ex.Message
             });
         }
     }
