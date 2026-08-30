@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CloudService.WebApi.Controllers;
 
 [ApiController]
+[Route("/")]
 [Route("api/[controller]")]
 public class HealthController : ControllerBase
 {
