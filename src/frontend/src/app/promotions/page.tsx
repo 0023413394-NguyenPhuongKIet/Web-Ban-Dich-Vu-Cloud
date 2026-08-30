@@ -74,6 +74,11 @@ export default function PromotionsPage() {
 
         const merged = Array.from(uniquePromosMap.values());
 
+        // Đồng bộ dọn dẹp lại localStorage để xóa bỏ vĩnh viễn các bản ghi rác cũ
+        if (typeof window !== 'undefined' && fetched.length > 0) {
+          localStorage.setItem('admin_managed_promotions', JSON.stringify(merged));
+        }
+
         if (merged.length > 0) {
           // Chỉ hiển thị các mã đang active
           setPromotions(merged.filter((p) => p.isActive));
