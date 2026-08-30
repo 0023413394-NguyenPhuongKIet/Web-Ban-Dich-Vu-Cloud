@@ -12,6 +12,7 @@ namespace CloudService.WebApi.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Route("api/News")]
 public class NewsArticlesController : ControllerBase
 {
     private readonly NewsArticleService _newsService;

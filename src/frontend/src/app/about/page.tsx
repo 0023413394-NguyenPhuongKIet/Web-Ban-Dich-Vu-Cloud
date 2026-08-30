@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ShieldCheck, 
@@ -20,10 +20,74 @@ import {
   Layers,
   MapPin,
   Headphones,
-  Check
+  Check,
+  ExternalLink,
+  QrCode
 } from 'lucide-react';
+import { formatCurrency, generateLinkQrUrl } from '@/lib/formatters';
+
+interface AboutPlanItem {
+  id: number;
+  name: string;
+  code: string;
+  monthlyPrice: number;
+  cpu: string;
+  ram: string;
+  storage: string;
+  redirectLink?: string;
+}
+
+const defaultAboutPlans: AboutPlanItem[] = [
+  {
+    id: 1,
+    name: 'Cloud VPS Starter',
+    code: 'VPS-STARTER',
+    monthlyPrice: 99000,
+    cpu: '1 Core Intel Xeon',
+    ram: '1 GB DDR4 ECC',
+    storage: '25 GB NVMe Enterprise',
+    redirectLink: '/order/1',
+  },
+  {
+    id: 2,
+    name: 'Cloud VPS Pro',
+    code: 'VPS-PRO',
+    monthlyPrice: 249000,
+    cpu: '2 Core Intel Xeon',
+    ram: '4 GB DDR4 ECC',
+    storage: '60 GB NVMe Enterprise',
+    redirectLink: '/order/2',
+  },
+  {
+    id: 3,
+    name: 'Cloud VPS Business',
+    code: 'VPS-BUSINESS',
+    monthlyPrice: 499000,
+    cpu: '4 Core Intel Xeon',
+    ram: '8 GB DDR4 ECC',
+    storage: '120 GB NVMe Enterprise',
+    redirectLink: '/order/3',
+  },
+];
 
 export default function AboutPage() {
+  const [plans, setPlans] = useState<AboutPlanItem[]>(defaultAboutPlans);
+  const [origin, setOrigin] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin);
+      try {
+        const saved = localStorage.getItem('admin_managed_service_plans');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPlans(parsed.slice(0, 3));
+          }
+        }
+      } catch {}
+    }
+  }, []);
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
       
@@ -286,6 +350,92 @@ export default function AboutPage() {
             </p>
           </div>
 
+        </div>
+      </section>
+
+      {/* 4.5. QUÉT MÃ QR TRUY CẬP NHANH & ĐẶT GÓI DỊCH VỤ TRỰC TIẾP */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 rounded-3xl p-8 sm:p-12 text-white border border-blue-800/40 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 space-y-8">
+            <div className="text-center max-w-3xl mx-auto space-y-3">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold border border-blue-400/30">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Trải Nghiệm Tiện Lợi Bằng Điện Thoại</span>
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+                Quét Mã QR Đặt Gói Máy Chủ Trực Tuyến
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
+                Sử dụng camera điện thoại hoặc ứng dụng Zalo/Ngân hàng để quét mã QR bên dưới, hệ thống sẽ chuyển hướng trực tiếp bạn tới trang cấu hình gói máy chủ và điền thông tin thanh toán nhanh chóng.
+              </p>
+            </div>
+
+            {/* Danh sách các mã QR của từng gói dịch vụ - Tự động cập nhật theo cấu hình Admin */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+              {plans.map((p, idx) => {
+                const targetLink = p.redirectLink || `/order/${p.id}`;
+                const fullTargetUrl = targetLink.startsWith('http')
+                  ? targetLink
+                  : (origin ? `${origin}${targetLink}` : `http://localhost:3000${targetLink}`);
+                const isPro = idx === 1 || p.code?.includes('PRO');
+
+                return (
+                  <div
+                    key={p.id || idx}
+                    className={`rounded-2xl p-6 backdrop-blur-md transition-all flex flex-col items-center text-center space-y-4 group relative ${
+                      isPro
+                        ? 'bg-gradient-to-b from-blue-900/70 to-slate-800/90 border-2 border-blue-400 shadow-xl shadow-blue-500/10'
+                        : 'bg-slate-800/80 border border-slate-700/80 hover:border-blue-400/60'
+                    }`}
+                  >
+                    {isPro && (
+                      <div className="absolute -top-3 px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-[10px] uppercase tracking-wider shadow">
+                        Gói Nổi Bật
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between w-full border-b border-slate-700 pb-3">
+                      <span className={`text-xs font-bold ${isPro ? 'text-sky-300' : 'text-blue-400'}`}>
+                        {p.name}
+                      </span>
+                      <span className="text-xs font-mono font-bold text-white bg-blue-600/30 px-2 py-0.5 rounded border border-blue-500/40">
+                        {formatCurrency(p.monthlyPrice)}/th
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-white rounded-2xl shadow-lg group-hover:scale-105 transition-transform flex flex-col items-center">
+                      <img
+                        src={generateLinkQrUrl(fullTargetUrl)}
+                        alt={`QR ${p.name}`}
+                        className="w-40 h-40 object-contain"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5 w-full">
+                      <p className="text-xs text-slate-200 font-semibold">
+                        {p.cpu} | {p.ram} | {p.storage}
+                      </p>
+                      <p className="text-[11px] text-slate-400">Quét để chuyển đến trang đặt hàng</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="text-center pt-2">
+              <p className="text-xs text-slate-400">
+                💡 Bạn cũng có thể xem toàn bộ bảng giá và thanh toán trực tiếp qua chuyển khoản ngân hàng tự động tại trang{' '}
+                <Link href="/services" className="text-blue-400 font-bold hover:underline">
+                  Dịch Vụ & Bảng Giá
+                </Link>
+                .
+              </p>
+            </div>
+
+          </div>
         </div>
       </section>
 

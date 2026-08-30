@@ -9,6 +9,7 @@ namespace CloudService.WebApi.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/plans")]
+[Route("api/[controller]")]
 public class ServicePlansController : ControllerBase
 {
     private readonly ServicePlanService _service;

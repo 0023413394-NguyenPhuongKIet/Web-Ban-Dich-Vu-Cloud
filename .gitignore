@@ -14,9 +14,22 @@ node_modules/
 out/
 dist/
 
+## Test Results & Coverage
+[Tt]est[Rr]esults/
+CoverageReport/
+*.trx
+*.coverage
+*.coveragexml
+
 ## Environment & Logs
 *.log
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+## Temporary files
+~$*.docx
+~$*.xlsx
+~$*.pptx
+*.tmp

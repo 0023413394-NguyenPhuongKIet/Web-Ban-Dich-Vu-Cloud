@@ -26,6 +26,7 @@ export interface ServicePlan {
   description?: string;
   specsJson?: string;
   qrCodeUrl?: string;
+  redirectLink?: string;
   isFeatured: boolean;
   isActive: boolean;
   category?: ServiceCategory;
