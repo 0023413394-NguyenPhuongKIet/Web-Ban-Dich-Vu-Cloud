@@ -73,7 +73,7 @@ export default function AdminPromotionsManagementPage() {
 
   const loadPromotions = async () => {
     setLoading(true);
-    const localSaved = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
+    const localSaved: Promotion[] = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
 
     try {
       const res = await fetchApi<any>('/api/Promotions');
@@ -85,7 +85,18 @@ export default function AdminPromotionsManagementPage() {
       }
 
       if (fetched.length > 0) {
-        setPromotions(fetched);
+        // Gộp và loại bỏ trùng lặp mã code (ưu tiên backend)
+        const codeMap = new Map<string, Promotion>();
+        fetched.forEach((p) => {
+          if (p.code) codeMap.set(p.code.trim().toUpperCase(), p);
+        });
+        localSaved.forEach((p) => {
+          const k = p.code ? p.code.trim().toUpperCase() : '';
+          if (k && !codeMap.has(k)) codeMap.set(k, p);
+        });
+        const allPromos = Array.from(codeMap.values());
+        setPromotions(allPromos);
+        localStorage.setItem('admin_managed_promotions', JSON.stringify(allPromos));
       } else if (localSaved.length > 0) {
         setPromotions(localSaved);
       } else {
@@ -156,17 +167,21 @@ export default function AdminPromotionsManagementPage() {
       createdAt: new Date().toISOString(),
     };
 
-    let updated: Promotion[] = [];
+    // Loại bỏ mã cùng code trong danh sách trước khi thêm mới để không trùng lặp
+    const cleanCurrent = promotions.filter(
+      (p) => p.code.trim().toUpperCase() !== payload.code && (!editingPromo || p.id !== editingPromo.id)
+    );
+    const updated = [newPromoItem, ...cleanCurrent];
+    setPromotions(updated);
+    localStorage.setItem('admin_managed_promotions', JSON.stringify(updated));
+
     if (editingPromo) {
-      updated = promotions.map((p) => (p.id === editingPromo.id ? newPromoItem : p));
       setMessage(`Đã cập nhật mã khuyến mãi "${newPromoItem.code}".`);
     } else {
-      updated = [newPromoItem, ...promotions];
       setMessage(`Đã thêm mới thành công mã "${newPromoItem.code}".`);
     }
 
-    setPromotions(updated);
-    localStorage.setItem('admin_managed_promotions', JSON.stringify(updated));
+    setIsModalOpen(false);
 
     try {
       if (editingPromo) {
@@ -180,9 +195,8 @@ export default function AdminPromotionsManagementPage() {
           body: JSON.stringify(payload),
         });
       }
+      await loadPromotions();
     } catch {}
-
-    setIsModalOpen(false);
   };
 
   // Trạng thái modal xác nhận xóa
@@ -192,14 +206,21 @@ export default function AdminPromotionsManagementPage() {
     if (!deleteConfirmId) return;
     const id = deleteConfirmId;
     const deletedPromo = promotions.find((p) => p.id === id);
-    const updated = promotions.filter((p) => p.id !== id);
+    const deletedCode = deletedPromo?.code?.trim().toUpperCase();
+
+    const updated = promotions.filter(
+      (p) => p.id !== id && (deletedCode ? p.code.trim().toUpperCase() !== deletedCode : true)
+    );
     setPromotions(updated);
     localStorage.setItem('admin_managed_promotions', JSON.stringify(updated));
     setMessage(`Đã xóa thành công mã khuyến mãi "${deletedPromo?.code || id}".`);
     setDeleteConfirmId(null);
 
     try {
-      await fetchApi(`/api/Promotions/${id}`, { method: 'DELETE' });
+      await fetchApi(`/api/Promotions/${id}`, {
+        method: 'DELETE',
+      });
+      await loadPromotions();
     } catch {}
   };
 

@@ -54,10 +54,25 @@ export default function PromotionsPage() {
           fetched = res.data.items;
         }
 
-        // Gộp: ưu tiên localStorage (admin thêm/sửa), loại bỏ trùng id với backend
-        const fetchedIds = new Set(fetched.map((p: Promotion) => p.id));
-        const localOnly = localManagedPromos.filter((p) => !fetchedIds.has(p.id));
-        const merged = [...localOnly, ...fetched];
+        // Gộp & Loại bỏ trùng lặp theo Mã Khuyến Mãi (code)
+        const uniquePromosMap = new Map<string, Promotion>();
+        
+        // Ưu tiên dữ liệu chính xác từ Backend CSDL
+        fetched.forEach((p: Promotion) => {
+          if (p.code) {
+            uniquePromosMap.set(p.code.trim().toUpperCase(), p);
+          }
+        });
+
+        // Bổ sung các mã local nếu backend chưa có
+        localManagedPromos.forEach((p: Promotion) => {
+          const codeKey = p.code ? p.code.trim().toUpperCase() : '';
+          if (codeKey && !uniquePromosMap.has(codeKey)) {
+            uniquePromosMap.set(codeKey, p);
+          }
+        });
+
+        const merged = Array.from(uniquePromosMap.values());
 
         if (merged.length > 0) {
           // Chỉ hiển thị các mã đang active

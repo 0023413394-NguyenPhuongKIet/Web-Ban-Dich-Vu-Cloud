@@ -219,16 +219,24 @@ export default function HomePage() {
           fetched = res.data.items;
         }
 
-        if (fetched.length > 0) {
-          setActivePromotions(fetched.slice(0, 3));
+        const localManagedPromos: Promotion[] = JSON.parse(
+          localStorage.getItem('admin_managed_promotions') || '[]'
+        );
+
+        const codeMap = new Map<string, Promotion>();
+        fetched.forEach((p: Promotion) => {
+          if (p.code && p.isActive) codeMap.set(p.code.trim().toUpperCase(), p);
+        });
+        localManagedPromos.forEach((p: Promotion) => {
+          const k = p.code ? p.code.trim().toUpperCase() : '';
+          if (k && p.isActive && !codeMap.has(k)) codeMap.set(k, p);
+        });
+
+        const merged = Array.from(codeMap.values());
+        if (merged.length > 0) {
+          setActivePromotions(merged.slice(0, 3));
         } else {
-          const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
-          if (localManagedPromos.length > 0) {
-            const activeOnly = localManagedPromos.filter((p: any) => p.isActive);
-            setActivePromotions(activeOnly.slice(0, 3));
-          } else {
-            setActivePromotions(defaultActivePromos);
-          }
+          setActivePromotions(defaultActivePromos);
         }
       } catch {
         const localManagedPromos = JSON.parse(localStorage.getItem('admin_managed_promotions') || '[]');
